@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import {
   doc,
   setDoc,
@@ -8,6 +14,7 @@ import {
   increment,
   arrayUnion,
 } from "firebase/firestore";
+
 import { db } from "./firebase";
 
 const MAX_LEN = 800;
@@ -21,12 +28,14 @@ const MAX_VIDEO_MB = 500;
 const CLOUDINARY_CLOUD_NAME = "p1fg3tcx";
 const CLOUDINARY_UPLOAD_PRESET = "hush_media";
 
-// Uploads one image or video to Cloudinary.
 const uploadToCloudinary = async (file) => {
   const formData = new FormData();
 
   formData.append("file", file);
-  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+  formData.append(
+    "upload_preset",
+    CLOUDINARY_UPLOAD_PRESET
+  );
 
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
@@ -39,9 +48,14 @@ const uploadToCloudinary = async (file) => {
   if (!response.ok) {
     const errorText = await response.text();
 
-    console.error("❌ Cloudinary upload failed:", errorText);
+    console.error(
+      "❌ Cloudinary upload failed:",
+      errorText
+    );
 
-    throw new Error("Cloudinary upload failed.");
+    throw new Error(
+      "Cloudinary upload failed."
+    );
   }
 
   const data = await response.json();
@@ -83,7 +97,8 @@ const ANIMAL = [
   "newt",
 ];
 
-const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const pick = (a) =>
+  a[Math.floor(Math.random() * a.length)];
 
 const makeIdentity = () => ({
   handle: `${pick(ADJ)}_${pick(ANIMAL)}${Math.floor(
@@ -92,21 +107,33 @@ const makeIdentity = () => ({
   hue: Math.floor(Math.random() * 360),
 });
 
-// Generates a short random ID.
-const uid = () => Math.random().toString(36).slice(2, 10);
+const uid = () =>
+  Math.random().toString(36).slice(2, 10);
 
 // =========================================================
 // TIME
 // =========================================================
 
 const ago = (t) => {
-  const s = Math.floor((Date.now() - t) / 1000);
+  const s = Math.floor(
+    (Date.now() - t) / 1000
+  );
 
   if (s < 45) return "now";
-  if (s < 3600) return `${Math.max(1, Math.round(s / 60))}m`;
-  if (s < 86400) return `${Math.round(s / 3600)}h`;
+  if (s < 3600)
+    return `${Math.max(
+      1,
+      Math.round(s / 60)
+    )}m`;
 
-  return `${Math.round(s / 86400)}d`;
+  if (s < 86400)
+    return `${Math.round(
+      s / 3600
+    )}h`;
+
+  return `${Math.round(
+    s / 86400
+  )}d`;
 };
 
 // =========================================================
@@ -119,71 +146,6 @@ const compact = (n) =>
     : n >= 1e3
     ? (n / 1e3).toFixed(1) + "K"
     : String(n);
-
-// =========================================================
-// DEMO DATA
-// =========================================================
-
-const now = Date.now();
-
-const SEED = [
-  {
-    id: "s1",
-    text: "I've been pretending to like coffee for six years. It tastes like burnt pencils and I'm tired.",
-    handle: "sleepy_otter482",
-    hue: 340,
-    time: now - 6 * 60e3,
-    media: [],
-    likes: 214,
-    reposts: 18,
-    views: 3120,
-    replies: [
-      {
-        id: "r1",
-        text: "Tea gang welcomes you.",
-        handle: "gentle_heron221",
-        hue: 150,
-        time: now - 3 * 60e3,
-      },
-    ],
-  },
-  {
-    id: "s2",
-    text: "Nobody tells you the hardest part of growing up is realising your parents were guessing too.",
-    handle: "midnight_owl907",
-    hue: 262,
-    time: now - 42 * 60e3,
-    media: [],
-    likes: 1802,
-    reposts: 344,
-    views: 21800,
-    replies: [],
-  },
-  {
-    id: "s3",
-    text: "Sent a 'you too!' to the delivery guy when he said enjoy your meal. He was very kind about it.",
-    handle: "neon_gecko115",
-    hue: 52,
-    time: now - 3 * 3600e3,
-    media: [],
-    likes: 902,
-    reposts: 61,
-    views: 8400,
-    replies: [],
-  },
-  {
-    id: "s4",
-    text: "Interview tomorrow and I have no idea what this company does. Send snacks.",
-    handle: "restless_lynx630",
-    hue: 200,
-    time: now - 5 * 3600e3,
-    media: [],
-    likes: 57,
-    reposts: 2,
-    views: 990,
-    replies: [],
-  },
-];
 
 // =========================================================
 // LOCAL STORAGE HELPERS
@@ -199,40 +161,104 @@ const load = (k, d) => {
   }
 };
 
-const arr = (v) => (Array.isArray(v) ? v : []);
+const arr = (v) =>
+  Array.isArray(v) ? v : [];
 
 // =========================================================
 // NORMALIZE POSTS
 // =========================================================
+//
+// Important:
+// Firestore is now the source of truth.
+//
+// We also remove duplicate post IDs here as
+// an extra safety measure.
+//
 
-const normalizePosts = (list) =>
-  arr(list)
-    .filter((p) => p && typeof p === "object")
+const normalizePosts = (list) => {
+  const seen = new Set();
+
+  return arr(list)
+    .filter(
+      (p) =>
+        p &&
+        typeof p === "object"
+    )
     .map((p) => ({
       id: p.id || uid(),
-      text: String(p.text || ""),
+
+      text: String(
+        p.text || ""
+      ),
+
       handle:
         p.handle ||
-        "anonymous_" + Math.floor(Math.random() * 900 + 100),
-      hue: Number(p.hue) || 0,
-      time: Number(p.time) || Date.now(),
-      media: arr(p.media),
-      likes: Number(p.likes) || 0,
-      reposts: Number(p.reposts) || 0,
-      views: Number(p.views) || 0,
+        "anonymous_" +
+          Math.floor(
+            Math.random() * 900 + 100
+          ),
 
-      replies: arr(p.replies).map((r) => ({
-        id: (r && r.id) || uid(),
-        text: String((r && r.text) || ""),
-        handle: (r && r.handle) || "anonymous",
-        hue: Number(r && r.hue) || 0,
-        time: Number(r && r.time) || Date.now(),
+      hue:
+        Number(p.hue) || 0,
+
+      time:
+        Number(p.time) ||
+        Date.now(),
+
+      media: arr(p.media),
+
+      likes:
+        Number(p.likes) || 0,
+
+      reposts:
+        Number(p.reposts) || 0,
+
+      views:
+        Number(p.views) || 0,
+
+      replies: arr(
+        p.replies
+      ).map((r) => ({
+        id:
+          (r && r.id) ||
+          uid(),
+
+        text: String(
+          (r && r.text) || ""
+        ),
+
+        handle:
+          (r && r.handle) ||
+          "anonymous",
+
+        hue:
+          Number(
+            r && r.hue
+          ) || 0,
+
+        time:
+          Number(
+            r && r.time
+          ) || Date.now(),
       })),
-    }));
+    }))
+    .filter((post) => {
+      if (seen.has(post.id)) {
+        return false;
+      }
+
+      seen.add(post.id);
+
+      return true;
+    });
+};
 
 const save = (k, v) => {
   try {
-    localStorage.setItem(k, JSON.stringify(v));
+    localStorage.setItem(
+      k,
+      JSON.stringify(v)
+    );
   } catch {}
 };
 
@@ -240,7 +266,10 @@ const save = (k, v) => {
 // AVATAR
 // =========================================================
 
-function Avatar({ hue, size = 44 }) {
+function Avatar({
+  hue,
+  size = 44,
+}) {
   const id = `av${hue}${size}`;
 
   return (
@@ -252,12 +281,23 @@ function Avatar({ hue, size = 44 }) {
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor={`hsl(${hue} 90% 65%)`} />
+        <linearGradient
+          id={id}
+          x1="0"
+          y1="0"
+          x2="1"
+          y2="1"
+        >
+          <stop
+            offset="0"
+            stopColor={`hsl(${hue} 90% 65%)`}
+          />
 
           <stop
             offset="1"
-            stopColor={`hsl(${(hue + 60) % 360} 90% 55%)`}
+            stopColor={`hsl(${
+              (hue + 60) % 360
+            } 90% 55%)`}
           />
         </linearGradient>
       </defs>
@@ -297,12 +337,19 @@ function Avatar({ hue, size = 44 }) {
 // ICON
 // =========================================================
 
-const Icon = ({ d, fill }) => (
+const Icon = ({
+  d,
+  fill,
+}) => (
   <svg
     viewBox="0 0 24 24"
     width="19"
     height="19"
-    fill={fill ? "currentColor" : "none"}
+    fill={
+      fill
+        ? "currentColor"
+        : "none"
+    }
     stroke="currentColor"
     strokeWidth="1.8"
     strokeLinecap="round"
@@ -318,7 +365,8 @@ const Icon = ({ d, fill }) => (
 // =========================================================
 
 const I = {
-  home: "M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z",
+  home:
+    "M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z",
 
   search:
     "M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16zM21 21l-4.3-4.3",
@@ -344,9 +392,11 @@ const I = {
   pin:
     "M8 3h8M9 3v7l-3 4h12l-3-4V3M12 14v7",
 
-  x: "M18 6L6 18M6 6l12 12",
+  x:
+    "M18 6L6 18M6 6l12 12",
 
-  plus: "M12 5v14M5 12h14",
+  plus:
+    "M12 5v14M5 12h14",
 };
 
 // =========================================================
@@ -355,11 +405,17 @@ const I = {
 
 function Ring({ used }) {
   const r = 9;
-  const c = 2 * Math.PI * r;
 
-  const pct = Math.min(used / MAX_LEN, 1);
+  const c =
+    2 * Math.PI * r;
 
-  const left = MAX_LEN - used;
+  const pct = Math.min(
+    used / MAX_LEN,
+    1
+  );
+
+  const left =
+    MAX_LEN - used;
 
   const color =
     left < 0
@@ -373,7 +429,11 @@ function Ring({ used }) {
       className="ring"
       aria-label={`${left} characters left`}
     >
-      <svg width="26" height="26" viewBox="0 0 24 24">
+      <svg
+        width="26"
+        height="26"
+        viewBox="0 0 24 24"
+      >
         <circle
           cx="12"
           cy="12"
@@ -391,7 +451,9 @@ function Ring({ used }) {
           stroke={color}
           strokeWidth="2.5"
           strokeDasharray={c}
-          strokeDashoffset={c * (1 - pct)}
+          strokeDashoffset={
+            c * (1 - pct)
+          }
           strokeLinecap="round"
           transform="rotate(-90 12 12)"
         />
@@ -407,27 +469,36 @@ function Ring({ used }) {
 }
 
 // =========================================================
-// RICH TEXT / HASHTAGS
+// RICH TEXT
 // =========================================================
 
-function Rich({ text, onTag }) {
+function Rich({
+  text,
+  onTag,
+}) {
   return (
     <>
-      {text.split(/(#\w+)/g).map((part, i) =>
-        /^#\w+$/.test(part) ? (
-          <button
-            key={i}
-            className="tag"
-            onClick={() => onTag(part)}
-          >
-            {part}
-          </button>
-        ) : (
-          <span key={i}>
-            {part}
-          </span>
-        )
-      )}
+      {text
+        .split(/(#\w+)/g)
+        .map((part, i) =>
+          /^#\w+$/.test(
+            part
+          ) ? (
+            <button
+              key={i}
+              className="tag"
+              onClick={() =>
+                onTag(part)
+              }
+            >
+              {part}
+            </button>
+          ) : (
+            <span key={i}>
+              {part}
+            </span>
+          )
+        )}
     </>
   );
 }
@@ -436,56 +507,69 @@ function Rich({ text, onTag }) {
 // MEDIA
 // =========================================================
 
-function Media({ items }) {
-  if (!items.length) return null;
+function Media({
+  items,
+}) {
+  if (!items.length)
+    return null;
 
   return (
-    <div className={`media n${items.length}`}>
-      {items.map((m, i) => {
-        const isVideo = m.type === "video";
+    <div
+      className={`media n${items.length}`}
+    >
+      {items.map(
+        (m, i) => {
+          const isVideo =
+            m.type ===
+            "video";
 
-        const fileName =
-          m.name ||
-          `hush-image-${i + 1}.jpg`;
+          const fileName =
+            m.name ||
+            `hush-image-${
+              i + 1
+            }.jpg`;
 
-        return (
-          <div
-            className="hush-media-item"
-            key={`${m.url}-${i}`}
-          >
-            {isVideo ? (
-              <video
-                src={m.url}
-                controls
-                playsInline
-                preload="metadata"
-              />
-            ) : (
-              <>
-                <img
+          return (
+            <div
+              className="hush-media-item"
+              key={`${m.url}-${i}`}
+            >
+              {isVideo ? (
+                <video
                   src={m.url}
-                  alt="Attached by an anonymous user"
-                  loading="lazy"
+                  controls
+                  playsInline
+                  preload="metadata"
                 />
+              ) : (
+                <>
+                  <img
+                    src={m.url}
+                    alt="Attached by an anonymous user"
+                    loading="lazy"
+                  />
 
-                <a
-                  href={m.url}
-                  download={fileName}
-                  className="hush-download-button"
-                  aria-label="Download image"
-                  title="Download image"
-                >
-                  <span aria-hidden="true">
-                    ↓
-                  </span>
+                  <a
+                    href={m.url}
+                    download={
+                      fileName
+                    }
+                    className="hush-download-button"
+                    aria-label="Download image"
+                    title="Download image"
+                  >
+                    <span aria-hidden="true">
+                      ↓
+                    </span>
 
-                  Download
-                </a>
-              </>
-            )}
-          </div>
-        );
-      })}
+                    Download
+                  </a>
+                </>
+              )}
+            </div>
+          );
+        }
+      )}
     </div>
   );
 }
@@ -497,45 +581,61 @@ function Media({ items }) {
 function Composer({
   onPost,
   inputRef,
-  placeholder =
-    "What's on your mind? Nobody will know it's you.",
+  placeholder = "What's on your mind? Nobody will know it's you.",
 }) {
-  const [text, setText] = useState("");
+  const [text, setText] =
+    useState("");
 
-  const [media, setMedia] = useState([]);
+  const [media, setMedia] =
+    useState([]);
 
-  const [error, setError] = useState("");
+  const [error, setError] =
+    useState("");
 
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] =
+    useState(false);
 
-  const fileRef = useRef(null);
+  const fileRef =
+    useRef(null);
 
-  const hasVideo = media.some(
-    (m) => m.type === "video"
-  );
+  const hasVideo =
+    media.some(
+      (m) =>
+        m.type ===
+        "video"
+    );
 
   const canPost =
-    (text.trim() || media.length) &&
-    text.length <= MAX_LEN &&
+    (text.trim() ||
+      media.length) &&
+    text.length <=
+      MAX_LEN &&
     !uploading;
 
-  // =========================================================
-  // ADD MEDIA
-  // =========================================================
-
-  const addFiles = (files) => {
+  const addFiles = (
+    files
+  ) => {
     setError("");
 
-    let next = [...media];
+    let next = [
+      ...media,
+    ];
 
     for (const f of files) {
       const isVideo =
-        f.type.startsWith("video/");
+        f.type.startsWith(
+          "video/"
+        );
 
       const isImage =
-        f.type.startsWith("image/");
+        f.type.startsWith(
+          "image/"
+        );
 
-      if (!isVideo && !isImage) {
+      if (
+        !isVideo &&
+        !isImage
+      ) {
         setError(
           "Only images and videos can be attached."
         );
@@ -546,7 +646,9 @@ function Composer({
       if (
         isVideo &&
         f.size >
-          MAX_VIDEO_MB * 1024 * 1024
+          MAX_VIDEO_MB *
+            1024 *
+            1024
       ) {
         const fileSizeMB = (
           f.size /
@@ -560,7 +662,10 @@ function Composer({
         continue;
       }
 
-      if (isVideo && next.length) {
+      if (
+        isVideo &&
+        next.length
+      ) {
         setError(
           "A video can't be combined with other media."
         );
@@ -571,7 +676,9 @@ function Composer({
       if (
         !isVideo &&
         next.some(
-          (m) => m.type === "video"
+          (m) =>
+            m.type ===
+            "video"
         )
       ) {
         setError(
@@ -581,7 +688,10 @@ function Composer({
         continue;
       }
 
-      if (next.length >= MAX_MEDIA) {
+      if (
+        next.length >=
+        MAX_MEDIA
+      ) {
         setError(
           `You can attach up to ${MAX_MEDIA} images.`
         );
@@ -594,7 +704,9 @@ function Composer({
           ? "video"
           : "image",
 
-        url: URL.createObjectURL(f),
+        url: URL.createObjectURL(
+          f
+        ),
 
         file: f,
 
@@ -607,35 +719,37 @@ function Composer({
     setMedia(next);
   };
 
-  // =========================================================
-  // REMOVE MEDIA
-  // =========================================================
+  const removeMedia = (
+    index
+  ) => {
+    setMedia(
+      (current) => {
+        const item =
+          current[index];
 
-  const removeMedia = (index) => {
-    setMedia((current) => {
-      const item = current[index];
+        if (
+          item?.url?.startsWith(
+            "blob:"
+          )
+        ) {
+          URL.revokeObjectURL(
+            item.url
+          );
+        }
 
-      if (
-        item?.url?.startsWith("blob:")
-      ) {
-        URL.revokeObjectURL(item.url);
+        return current.filter(
+          (_, i) =>
+            i !== index
+        );
       }
-
-      return current.filter(
-        (_, i) => i !== index
-      );
-    });
+    );
   };
 
-  // =========================================================
-  // SUBMIT
-  // =========================================================
-
   const submit = async () => {
-    if (!canPost) return;
+    if (!canPost)
+      return;
 
     setUploading(true);
-
     setError("");
 
     try {
@@ -644,18 +758,22 @@ function Composer({
         media
       );
 
-      media.forEach((item) => {
-        if (
-          item?.url?.startsWith("blob:")
-        ) {
-          URL.revokeObjectURL(item.url);
+      media.forEach(
+        (item) => {
+          if (
+            item?.url?.startsWith(
+              "blob:"
+            )
+          ) {
+            URL.revokeObjectURL(
+              item.url
+            );
+          }
         }
-      });
+      );
 
       setText("");
-
       setMedia([]);
-
       setError("");
     } catch (error) {
       console.error(
@@ -698,52 +816,68 @@ function Composer({
           ref={inputRef}
           value={text}
           rows={2}
-          placeholder={placeholder}
+          placeholder={
+            placeholder
+          }
           aria-label="Write an anonymous post"
           onChange={(e) =>
-            setText(e.target.value)
+            setText(
+              e.target.value
+            )
           }
           onKeyDown={(e) =>
-            (e.metaKey || e.ctrlKey) &&
-            e.key === "Enter" &&
+            (e.metaKey ||
+              e.ctrlKey) &&
+            e.key ===
+              "Enter" &&
             submit()
           }
         />
 
-        {media.length > 0 && (
+        {media.length >
+          0 && (
           <div
             className={`media n${media.length} editable`}
           >
-            {media.map((m, i) => (
-              <div
-                className="thumb"
-                key={m.url}
-              >
-                {m.type === "video" ? (
-                  <video
-                    src={m.url}
-                    controls
-                    playsInline
-                  />
-                ) : (
-                  <img
-                    src={m.url}
-                    alt="Attachment preview"
-                  />
-                )}
-
-                <button
-                  className="remove"
-                  aria-label="Remove attachment"
-                  onClick={() =>
-                    removeMedia(i)
-                  }
-                  disabled={uploading}
+            {media.map(
+              (m, i) => (
+                <div
+                  className="thumb"
+                  key={m.url}
                 >
-                  <Icon d={I.x} />
-                </button>
-              </div>
-            ))}
+                  {m.type ===
+                  "video" ? (
+                    <video
+                      src={m.url}
+                      controls
+                      playsInline
+                    />
+                  ) : (
+                    <img
+                      src={m.url}
+                      alt="Attachment preview"
+                    />
+                  )}
+
+                  <button
+                    className="remove"
+                    aria-label="Remove attachment"
+                    onClick={() =>
+                      removeMedia(
+                        i
+                      )
+                    }
+                    disabled={
+                      uploading
+                    }
+                  >
+                    <Icon
+                      d={I.x}
+                    />
+                  </button>
+                </div>
+              )
+            )}
           </div>
         )}
 
@@ -758,7 +892,8 @@ function Composer({
 
         {uploading && (
           <p className="anon-note">
-            Uploading your media securely...
+            Uploading your media
+            securely...
           </p>
         )}
 
@@ -773,10 +908,13 @@ function Composer({
               disabled={
                 uploading ||
                 hasVideo ||
-                media.length >= MAX_MEDIA
+                media.length >=
+                  MAX_MEDIA
               }
             >
-              <Icon d={I.image} />
+              <Icon
+                d={I.image}
+              />
             </button>
 
             <input
@@ -790,24 +928,35 @@ function Composer({
                   ...e.target.files,
                 ]);
 
-                e.target.value = "";
+                e.target.value =
+                  "";
               }}
             />
 
             <span className="anon-note">
-              Posting as a new stranger
+              Posting as a new
+              stranger
             </span>
           </div>
 
           <div className="send">
-            {text.length > 0 && (
-              <Ring used={text.length} />
+            {text.length >
+              0 && (
+              <Ring
+                used={
+                  text.length
+                }
+              />
             )}
 
             <button
               className="btn"
-              disabled={!canPost}
-              onClick={submit}
+              disabled={
+                !canPost
+              }
+              onClick={
+                submit
+              }
             >
               {uploading
                 ? "Uploading..."
@@ -844,7 +993,10 @@ function Post({
     useState("");
 
   const send = () => {
-    if (!reply.trim()) return;
+    if (
+      !reply.trim()
+    )
+      return;
 
     onReply(
       post.id,
@@ -856,7 +1008,9 @@ function Post({
 
   return (
     <article className="post">
-      <Avatar hue={post.hue} />
+      <Avatar
+        hue={post.hue}
+      />
 
       <div className="post-main">
         <header>
@@ -873,7 +1027,9 @@ function Post({
           </span>
 
           <span className="handle">
-            {ago(post.time)}
+            {ago(
+              post.time
+            )}
           </span>
 
           {pinned && (
@@ -892,11 +1048,13 @@ function Post({
           </p>
         )}
 
-        <Media items={post.media} />
+        <Media
+          items={
+            post.media
+          }
+        />
 
         <div className="actions">
-          {/* REPLIES */}
-
           <button
             className="act"
             onClick={() =>
@@ -904,40 +1062,53 @@ function Post({
             }
             aria-label="Replies"
           >
-            <Icon d={I.reply} />
+            <Icon
+              d={I.reply}
+            />
 
-            {post.replies.length || ""}
+            {post.replies
+              .length || ""}
           </button>
-
-          {/* REPOST */}
 
           <button
             className={`act repost ${
-              reposted ? "on" : ""
+              reposted
+                ? "on"
+                : ""
             }`}
             onClick={() =>
-              onRepost(post.id)
+              onRepost(
+                post.id
+              )
             }
-            aria-pressed={reposted}
+            aria-pressed={
+              reposted
+            }
             aria-label="Repost"
           >
-            <Icon d={I.repost} />
+            <Icon
+              d={I.repost}
+            />
 
             {compact(
               post.reposts
             )}
           </button>
 
-          {/* LIKE */}
-
           <button
             className={`act like ${
-              liked ? "on" : ""
+              liked
+                ? "on"
+                : ""
             }`}
             onClick={() =>
-              onLike(post.id)
+              onLike(
+                post.id
+              )
             }
-            aria-pressed={liked}
+            aria-pressed={
+              liked
+            }
             aria-label="Like"
           >
             <Icon
@@ -950,29 +1121,33 @@ function Post({
             )}
           </button>
 
-          {/* VIEWS */}
-
           <span
             className="act static"
             aria-label="Views"
           >
-            <Icon d={I.views} />
+            <Icon
+              d={I.views}
+            />
 
             {compact(
               post.views
             )}
           </span>
 
-          {/* PIN */}
-
           <button
             className={`act pin ${
-              pinned ? "on" : ""
+              pinned
+                ? "on"
+                : ""
             }`}
             onClick={() =>
-              onPin(post.id)
+              onPin(
+                post.id
+              )
             }
-            aria-pressed={pinned}
+            aria-pressed={
+              pinned
+            }
             aria-label={
               pinned
                 ? "Unpin post"
@@ -990,20 +1165,20 @@ function Post({
             />
           </button>
 
-          {/* SHARE */}
-
           <button
             className="act"
             onClick={() =>
-              onShare(post.id)
+              onShare(
+                post.id
+              )
             }
             aria-label="Copy link"
           >
-            <Icon d={I.share} />
+            <Icon
+              d={I.share}
+            />
           </button>
         </div>
-
-        {/* REPLIES */}
 
         {open && (
           <div className="thread">
@@ -1028,7 +1203,9 @@ function Post({
 
                       <span className="handle">
                         @{r.handle} ·{" "}
-                        {ago(r.time)}
+                        {ago(
+                          r.time
+                        )}
                       </span>
                     </div>
 
@@ -1043,7 +1220,9 @@ function Post({
             <div className="reply-box">
               <input
                 value={reply}
-                maxLength={MAX_LEN}
+                maxLength={
+                  MAX_LEN
+                }
                 placeholder="Post your reply"
                 aria-label="Write a reply"
                 onChange={(e) =>
@@ -1052,7 +1231,8 @@ function Post({
                   )
                 }
                 onKeyDown={(e) =>
-                  e.key === "Enter" &&
+                  e.key ===
+                    "Enter" &&
                   send()
                 }
               />
@@ -1062,7 +1242,9 @@ function Post({
                 disabled={
                   !reply.trim()
                 }
-                onClick={send}
+                onClick={
+                  send
+                }
               >
                 Reply
               </button>
@@ -1082,46 +1264,81 @@ function Hush() {
   const [posts, setPosts] =
     useState([]);
 
-  const [loadingPosts, setLoadingPosts] =
-    useState(true);
+  const [
+    loadingPosts,
+    setLoadingPosts,
+  ] = useState(true);
 
   // =========================================================
-  // LOAD POSTS FROM FIRESTORE
+  // REAL-TIME FIRESTORE POSTS
   // =========================================================
+  //
+  // Firestore is the ONLY source of truth for posts.
+  //
+  // If a supervisor deletes a document:
+  //
+  // Firestore
+  //     ↓
+  // onSnapshot
+  //     ↓
+  // snapshot.docs no longer contains it
+  //     ↓
+  // setPosts(...)
+  //     ↓
+  // post disappears from the app
+  //
+  // No browser refresh is required.
+  // =========================================================
+
   useEffect(() => {
-    const postsRef = collection(db, "posts");
-  
-    const unsubscribe = onSnapshot(
-      postsRef,
-      (snapshot) => {
-        const firebasePosts = snapshot.docs.map(
-          (document) => ({
-            ...document.data(),
-            id: document.id,
-          })
-        );
-  
-        setPosts(
-          normalizePosts(firebasePosts)
-        );
-  
-        setLoadingPosts(false);
-  
-        console.log(
-          "✅ Posts updated from Firestore:",
-          firebasePosts
-        );
-      },
-      (error) => {
-        console.error(
-          "❌ Failed to listen to posts from Firestore:",
-          error
-        );
-  
-        setLoadingPosts(false);
-      }
-    );
-  
+    const postsRef =
+      collection(
+        db,
+        "posts"
+      );
+
+    const unsubscribe =
+      onSnapshot(
+        postsRef,
+        (snapshot) => {
+          const firebasePosts =
+            snapshot.docs.map(
+              (document) => ({
+                ...document.data(),
+                id: document.id,
+              })
+            );
+
+          const cleanPosts =
+            normalizePosts(
+              firebasePosts
+            );
+
+          setPosts(
+            cleanPosts
+          );
+
+          setLoadingPosts(
+            false
+          );
+
+          console.log(
+            "✅ Real-time Firestore posts:",
+            cleanPosts
+          );
+        },
+        (error) => {
+          console.error(
+            "❌ Failed to listen to Firestore posts:",
+            error
+          );
+
+          setLoadingPosts(
+            false
+          );
+        }
+      );
+
     return () => {
       unsubscribe();
     };
@@ -1131,14 +1348,16 @@ function Hush() {
   // PINNED POST
   // =========================================================
 
-  const [pinnedPost, setPinnedPost] =
-    useState(() => {
-      return (
-        localStorage.getItem(
-          "hush2:pinned"
-        ) || null
-      );
-    });
+  const [
+    pinnedPost,
+    setPinnedPost,
+  ] = useState(() => {
+    return (
+      localStorage.getItem(
+        "hush2:pinned"
+      ) || null
+    );
+  });
 
   // =========================================================
   // LOCAL LIKE STATE
@@ -1154,15 +1373,17 @@ function Hush() {
       )
     );
 
-  const [reposts, setReposts] =
-    useState(() =>
-      arr(
-        load(
-          "hush2:reposts",
-          []
-        )
+  const [
+    reposts,
+    setReposts,
+  ] = useState(() =>
+    arr(
+      load(
+        "hush2:reposts",
+        []
       )
-    );
+    )
+  );
 
   const [mine, setMine] =
     useState(() =>
@@ -1228,13 +1449,15 @@ function Hush() {
   // =========================================================
 
   useEffect(() => {
-    const t = setInterval(
-      () =>
-        tick(
-          (n) => n + 1
-        ),
-      30000
-    );
+    const t =
+      setInterval(
+        () =>
+          tick(
+            (n) =>
+              n + 1
+          ),
+        30000
+      );
 
     return () =>
       clearInterval(t);
@@ -1245,12 +1468,15 @@ function Hush() {
   // =========================================================
 
   useEffect(() => {
-    if (!toast) return;
+    if (!toast)
+      return;
 
-    const t = setTimeout(
-      () => setToast(""),
-      2200
-    );
+    const t =
+      setTimeout(
+        () =>
+          setToast(""),
+        2200
+      );
 
     return () =>
       clearTimeout(t);
@@ -1269,13 +1495,12 @@ function Hush() {
     const identity =
       makeIdentity();
 
-    // =======================================================
-    // UPLOAD MEDIA
-    // =======================================================
+    let uploadedMedia =
+      [];
 
-    let uploadedMedia = [];
-
-    if (media.length > 0) {
+    if (
+      media.length > 0
+    ) {
       setToast(
         "Uploading your media..."
       );
@@ -1284,19 +1509,23 @@ function Hush() {
         uploadedMedia =
           await Promise.all(
             media.map(
-              async (item) => {
+              async (
+                item
+              ) => {
                 const cloudinaryData =
                   await uploadToCloudinary(
                     item.file
                   );
 
                 return {
-                  type: item.type,
+                  type:
+                    item.type,
 
                   url:
                     cloudinaryData.secure_url,
 
-                  name: item.name,
+                  name:
+                    item.name,
 
                   mimeType:
                     item.mimeType,
@@ -1331,20 +1560,18 @@ function Hush() {
       }
     }
 
-    // =======================================================
-    // CREATE POST
-    // =======================================================
-
     const newPost = {
       id,
 
       text,
 
-      media: uploadedMedia,
+      media:
+        uploadedMedia,
 
       ...identity,
 
-      time: Date.now(),
+      time:
+        Date.now(),
 
       likes: 0,
 
@@ -1357,16 +1584,22 @@ function Hush() {
 
     try {
       await setDoc(
-        doc(db, "posts", id),
+        doc(
+          db,
+          "posts",
+          id
+        ),
         newPost
       );
 
-      setPosts(
-        (currentPosts) => [
-          newPost,
-          ...currentPosts,
-        ]
-      );
+      // IMPORTANT:
+      // Do NOT call setPosts() here.
+      //
+      // onSnapshot() will receive this new
+      // Firestore document automatically.
+      //
+      // This prevents Latest from displaying
+      // the same post twice.
 
       setMine(
         (currentMine) => [
@@ -1405,7 +1638,9 @@ function Hush() {
   // PIN / UNPIN
   // =========================================================
 
-  const togglePin = (id) => {
+  const togglePin = (
+    id
+  ) => {
     setPinnedPost(
       (current) => {
         const next =
@@ -1433,61 +1668,54 @@ function Hush() {
   // LIKE — FIRESTORE
   // =========================================================
 
-  const toggleLike = async (id) => {
-    const alreadyLiked =
-      likes.includes(id);
+  const toggleLike =
+    async (id) => {
+      const alreadyLiked =
+        likes.includes(id);
 
-    try {
-      await updateDoc(
-        doc(db, "posts", id),
-        {
-          likes: increment(
-            alreadyLiked
-              ? -1
-              : 1
+      try {
+        await updateDoc(
+          doc(
+            db,
+            "posts",
+            id
           ),
-        }
-      );
+          {
+            likes:
+              increment(
+                alreadyLiked
+                  ? -1
+                  : 1
+              ),
+          }
+        );
 
-      setLikes(
-        (currentLikes) =>
-          alreadyLiked
-            ? currentLikes.filter(
-                (x) => x !== id
-              )
-            : [
-                ...currentLikes,
-                id,
-              ]
-      );
+        setLikes(
+          (
+            currentLikes
+          ) =>
+            alreadyLiked
+              ? currentLikes.filter(
+                  (x) =>
+                    x !== id
+                )
+              : [
+                  ...currentLikes,
+                  id,
+                ]
+        );
 
-      setPosts(
-        (currentPosts) =>
-          currentPosts.map(
-            (post) =>
-              post.id === id
-                ? {
-                    ...post,
-
-                    likes:
-                      Math.max(
-                        0,
-                        post.likes +
-                          (alreadyLiked
-                            ? -1
-                            : 1)
-                      ),
-                  }
-                : post
-          )
-      );
-    } catch (error) {
-      console.error(
-        "❌ Error updating like:",
-        error
-      );
-    }
-  };
+        // Do NOT manually update posts.
+        //
+        // Firestore onSnapshot will receive
+        // the changed likes value.
+      } catch (error) {
+        console.error(
+          "❌ Error updating like:",
+          error
+        );
+      }
+    };
 
   // =========================================================
   // REPOST — FIRESTORE
@@ -1496,11 +1724,17 @@ function Hush() {
   const toggleRepost =
     async (id) => {
       const alreadyReposted =
-        reposts.includes(id);
+        reposts.includes(
+          id
+        );
 
       try {
         await updateDoc(
-          doc(db, "posts", id),
+          doc(
+            db,
+            "posts",
+            id
+          ),
           {
             reposts:
               increment(
@@ -1512,10 +1746,13 @@ function Hush() {
         );
 
         setReposts(
-          (currentReposts) =>
+          (
+            currentReposts
+          ) =>
             alreadyReposted
               ? currentReposts.filter(
-                  (x) => x !== id
+                  (x) =>
+                    x !== id
                 )
               : [
                   ...currentReposts,
@@ -1523,26 +1760,9 @@ function Hush() {
                 ]
         );
 
-        setPosts(
-          (currentPosts) =>
-            currentPosts.map(
-              (post) =>
-                post.id === id
-                  ? {
-                      ...post,
-
-                      reposts:
-                        Math.max(
-                          0,
-                          post.reposts +
-                            (alreadyReposted
-                              ? -1
-                              : 1)
-                        ),
-                    }
-                  : post
-            )
-        );
+        // Do NOT manually update posts.
+        //
+        // Firestore onSnapshot handles it.
       } catch (error) {
         console.error(
           "❌ Error updating repost:",
@@ -1566,34 +1786,28 @@ function Hush() {
 
       ...makeIdentity(),
 
-      time: Date.now(),
+      time:
+        Date.now(),
     };
 
     try {
       await updateDoc(
-        doc(db, "posts", pid),
+        doc(
+          db,
+          "posts",
+          pid
+        ),
         {
           replies:
-            arrayUnion(newReply),
+            arrayUnion(
+              newReply
+            ),
         }
       );
 
-      setPosts(
-        (currentPosts) =>
-          currentPosts.map(
-            (post) =>
-              post.id === pid
-                ? {
-                    ...post,
-
-                    replies: [
-                      ...post.replies,
-                      newReply,
-                    ],
-                  }
-                : post
-          )
-      );
+      // Do NOT manually update posts.
+      //
+      // Firestore onSnapshot handles the new reply.
     } catch (error) {
       console.error(
         "❌ Error saving reply:",
@@ -1606,7 +1820,9 @@ function Hush() {
   // SHARE
   // =========================================================
 
-  const share = async (id) => {
+  const share = async (
+    id
+  ) => {
     const url =
       `${location.origin}${location.pathname}#${id}`;
 
@@ -1668,23 +1884,26 @@ function Hush() {
     useMemo(() => {
       const c = {};
 
-      posts.forEach((p) =>
-        (
-          p.text.match(
-            /#\w+/g
-          ) || []
-        ).forEach(
-          (t) =>
-            (c[
-              t.toLowerCase()
-            ] =
+      posts.forEach(
+        (p) =>
+          (
+            p.text.match(
+              /#\w+/g
+            ) || []
+          ).forEach(
+            (t) =>
               (c[
                 t.toLowerCase()
-              ] || 0) + 1)
-        )
+              ] =
+                (c[
+                  t.toLowerCase()
+                ] || 0) + 1)
+          )
       );
 
-      return Object.entries(c)
+      return Object.entries(
+        c
+      )
         .sort(
           (a, b) =>
             b[1] - a[1]
@@ -1701,35 +1920,45 @@ function Hush() {
       const score = (p) =>
         p.likes * 2 +
         p.reposts * 3 +
-        p.replies.length * 4 +
+        p.replies.length *
+          4 +
         p.views / 50;
 
-      let list = [...posts];
+      let list = [
+        ...posts,
+      ];
 
-      if (view === "media") {
-        list = list.filter(
-          (p) => p.media.length
-        );
+      if (
+        view === "media"
+      ) {
+        list =
+          list.filter(
+            (p) =>
+              p.media.length
+          );
       }
 
       if (
-        view === "explore" &&
+        view ===
+          "explore" &&
         query.trim()
       ) {
-        list = list.filter(
-          (p) =>
-            p.text
-              .toLowerCase()
-              .includes(
-                query
-                  .trim()
-                  .toLowerCase()
-              )
-        );
+        list =
+          list.filter(
+            (p) =>
+              p.text
+                .toLowerCase()
+                .includes(
+                  query
+                    .trim()
+                    .toLowerCase()
+                )
+          );
       }
 
       if (
-        view === "explore" &&
+        view ===
+          "explore" &&
         !query.trim()
       ) {
         list = [];
@@ -1737,10 +1966,14 @@ function Hush() {
 
       list.sort(
         (a, b) =>
-          view === "home" &&
-          tab === "latest"
-            ? b.time - a.time
-            : view === "home"
+          view ===
+            "home" &&
+          tab ===
+            "latest"
+            ? b.time -
+              a.time
+            : view ===
+                "home"
             ? score(b) -
               score(a)
             : b.time -
@@ -1810,9 +2043,6 @@ function Hush() {
 
   return (
     <div className="shell">
-
-      {/* DESKTOP SIDEBAR */}
-
       <aside className="rail">
         <div className="brand">
           hush<span>.</span>
@@ -1828,10 +2058,14 @@ function Hush() {
                   : ""
               }`}
               onClick={() =>
-                setView(n.id)
+                setView(
+                  n.id
+                )
               }
             >
-              <Icon d={n.icon} />
+              <Icon
+                d={n.icon}
+              />
 
               <span>
                 {n.label}
@@ -1842,7 +2076,9 @@ function Hush() {
 
         <button
           className="btn wide"
-          onClick={startPost}
+          onClick={
+            startPost
+          }
         >
           Post
         </button>
@@ -1854,15 +2090,14 @@ function Hush() {
         </p>
       </aside>
 
-      {/* MAIN TIMELINE */}
-
       <main className="timeline">
         <div className="sticky-top">
           <div className="mobile-brand brand">
             hush<span>.</span>
           </div>
 
-          {view === "home" && (
+          {view ===
+            "home" && (
             <div
               className="tabs"
               role="tablist"
@@ -1870,15 +2105,19 @@ function Hush() {
               <button
                 role="tab"
                 aria-selected={
-                  tab === "foryou"
+                  tab ===
+                  "foryou"
                 }
                 className={
-                  tab === "foryou"
+                  tab ===
+                  "foryou"
                     ? "on"
                     : ""
                 }
                 onClick={() =>
-                  setTab("foryou")
+                  setTab(
+                    "foryou"
+                  )
                 }
               >
                 For you
@@ -1887,15 +2126,19 @@ function Hush() {
               <button
                 role="tab"
                 aria-selected={
-                  tab === "latest"
+                  tab ===
+                  "latest"
                 }
                 className={
-                  tab === "latest"
+                  tab ===
+                  "latest"
                     ? "on"
                     : ""
                 }
                 onClick={() =>
-                  setTab("latest")
+                  setTab(
+                    "latest"
+                  )
                 }
               >
                 Latest
@@ -1903,15 +2146,19 @@ function Hush() {
             </div>
           )}
 
-          {view === "explore" && (
+          {view ===
+            "explore" && (
             <div className="search">
-              <Icon d={I.search} />
+              <Icon
+                d={I.search}
+              />
 
               <input
                 value={query}
                 onChange={(e) =>
                   setQuery(
-                    e.target.value
+                    e.target
+                      .value
                   )
                 }
                 placeholder="Search posts or #tags"
@@ -1924,16 +2171,21 @@ function Hush() {
                   className="icon-btn"
                   aria-label="Clear search"
                   onClick={() =>
-                    setQuery("")
+                    setQuery(
+                      ""
+                    )
                   }
                 >
-                  <Icon d={I.x} />
+                  <Icon
+                    d={I.x}
+                  />
                 </button>
               )}
             </div>
           )}
 
-          {view === "media" && (
+          {view ===
+            "media" && (
             <h2 className="page-title">
               Photos and videos
             </h2>
@@ -1946,14 +2198,20 @@ function Hush() {
           </div>
         ) : (
           <>
-            {view === "home" && (
+            {view ===
+              "home" && (
               <Composer
-                onPost={addPost}
-                inputRef={composerRef}
+                onPost={
+                  addPost
+                }
+                inputRef={
+                  composerRef
+                }
               />
             )}
 
-            {view === "explore" &&
+            {view ===
+              "explore" &&
               !query.trim() && (
                 <div className="trend-inline">
                   <h3>
@@ -1966,7 +2224,9 @@ function Hush() {
                         key={t}
                         className="trend"
                         onClick={() =>
-                          setQuery(t)
+                          setQuery(
+                            t
+                          )
                         }
                       >
                         <b>
@@ -1975,7 +2235,8 @@ function Hush() {
 
                         <span>
                           {n} post
-                          {n > 1
+                          {n >
+                          1
                             ? "s"
                             : ""}
                         </span>
@@ -1985,52 +2246,50 @@ function Hush() {
                 </div>
               )}
 
-            {shown.map((p) => (
-              <Post
-                key={p.id}
-                post={p}
+            {shown.map(
+              (p) => (
+                <Post
+                  key={p.id}
+                  post={p}
+                  liked={likes.includes(
+                    p.id
+                  )}
+                  reposted={reposts.includes(
+                    p.id
+                  )}
+                  mine={mine.includes(
+                    p.id
+                  )}
+                  onLike={
+                    toggleLike
+                  }
+                  onRepost={
+                    toggleRepost
+                  }
+                  onReply={
+                    addReply
+                  }
+                  onTag={
+                    goTag
+                  }
+                  onShare={
+                    share
+                  }
+                  onPin={
+                    togglePin
+                  }
+                  pinned={
+                    pinnedPost ===
+                    p.id
+                  }
+                />
+              )
+            )}
 
-                liked={likes.includes(
-                  p.id
-                )}
-
-                reposted={reposts.includes(
-                  p.id
-                )}
-
-                mine={mine.includes(
-                  p.id
-                )}
-
-                onLike={
-                  toggleLike
-                }
-
-                onRepost={
-                  toggleRepost
-                }
-
-                onReply={
-                  addReply
-                }
-
-                onTag={goTag}
-
-                onShare={share}
-
-                onPin={
-                  togglePin
-                }
-
-                pinned={
-                  pinnedPost ===
-                  p.id
-                }
-              />
-            ))}
-
-            {shown.length === 0 &&
-              view !== "explore" && (
+            {shown.length ===
+              0 &&
+              view !==
+                "explore" && (
                 <div className="empty">
                   Nothing here yet.
                   Post something and stay
@@ -2038,8 +2297,10 @@ function Hush() {
                 </div>
               )}
 
-            {shown.length === 0 &&
-              view === "explore" &&
+            {shown.length ===
+              0 &&
+              view ===
+                "explore" &&
               query.trim() && (
                 <div className="empty">
                   No posts match
@@ -2049,8 +2310,6 @@ function Hush() {
           </>
         )}
       </main>
-
-      {/* RIGHT SIDEBAR */}
 
       <aside className="side">
         <section className="card">
@@ -2066,8 +2325,6 @@ function Hush() {
         </section>
       </aside>
 
-      {/* MOBILE NAVIGATION */}
-
       <nav
         className="bottom"
         aria-label="Main mobile"
@@ -2081,26 +2338,32 @@ function Hush() {
                 : ""
             }
             onClick={() =>
-              setView(n.id)
+              setView(
+                n.id
+              )
             }
-            aria-label={n.label}
+            aria-label={
+              n.label
+            }
           >
-            <Icon d={n.icon} />
+            <Icon
+              d={n.icon}
+            />
           </button>
         ))}
       </nav>
 
-      {/* MOBILE POST BUTTON */}
-
       <button
         className="fab"
-        onClick={startPost}
+        onClick={
+          startPost
+        }
         aria-label="New post"
       >
-        <Icon d={I.plus} />
+        <Icon
+          d={I.plus}
+        />
       </button>
-
-      {/* TOAST */}
 
       {toast && (
         <div
@@ -2136,17 +2399,23 @@ class ErrorBoundary extends React.Component {
   }
 
   render() {
-    if (!this.state.error) {
-      return this.props.children;
+    if (
+      !this.state
+        .error
+    ) {
+      return this.props
+        .children;
     }
 
     return (
       <div
         style={{
           padding: 24,
-          fontFamily: "system-ui",
+          fontFamily:
+            "system-ui",
           maxWidth: 560,
-          margin: "40px auto",
+          margin:
+            "40px auto",
         }}
       >
         <h2>
@@ -2155,8 +2424,10 @@ class ErrorBoundary extends React.Component {
 
         <p>
           {String(
-            this.state.error &&
-              this.state.error.message
+            this.state
+              .error &&
+              this.state
+                .error.message
           )}
         </p>
 
@@ -2166,26 +2437,33 @@ class ErrorBoundary extends React.Component {
               Object.keys(
                 localStorage
               )
-                .filter((k) =>
-                  k.startsWith("hush")
+                .filter(
+                  (k) =>
+                    k.startsWith(
+                      "hush"
+                    )
                 )
-                .forEach((k) =>
-                  localStorage.removeItem(
-                    k
-                  )
+                .forEach(
+                  (k) =>
+                    localStorage.removeItem(
+                      k
+                    )
                 );
             } catch {}
 
             location.reload();
           }}
           style={{
-            padding: "10px 18px",
+            padding:
+              "10px 18px",
             borderRadius: 999,
             border: 0,
-            background: "#6d4aff",
+            background:
+              "#6d4aff",
             color: "#fff",
             fontWeight: 600,
-            cursor: "pointer",
+            cursor:
+              "pointer",
           }}
         >
           Reset and reload
