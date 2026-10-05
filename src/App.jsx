@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   doc,
   setDoc,
-  getDocs,
+  onSnapshot,
   collection,
   updateDoc,
   increment,
@@ -1088,44 +1088,43 @@ function Hush() {
   // =========================================================
   // LOAD POSTS FROM FIRESTORE
   // =========================================================
-
   useEffect(() => {
-    const loadPosts = async () => {
-      try {
-        const snapshot =
-          await getDocs(
-            collection(db, "posts")
-          );
-
-        const firebasePosts =
-          snapshot.docs.map(
-            (document) => ({
-              ...document.data(),
-              id: document.id,
-            })
-          );
-
-        setPosts(
-          normalizePosts(
-            firebasePosts
-          )
+    const postsRef = collection(db, "posts");
+  
+    const unsubscribe = onSnapshot(
+      postsRef,
+      (snapshot) => {
+        const firebasePosts = snapshot.docs.map(
+          (document) => ({
+            ...document.data(),
+            id: document.id,
+          })
         );
-
+  
+        setPosts(
+          normalizePosts(firebasePosts)
+        );
+  
+        setLoadingPosts(false);
+  
         console.log(
-          "✅ Posts loaded from Firestore:",
+          "✅ Posts updated from Firestore:",
           firebasePosts
         );
-      } catch (error) {
+      },
+      (error) => {
         console.error(
-          "❌ Failed to load posts from Firestore:",
+          "❌ Failed to listen to posts from Firestore:",
           error
         );
-      } finally {
+  
         setLoadingPosts(false);
       }
+    );
+  
+    return () => {
+      unsubscribe();
     };
-
-    loadPosts();
   }, []);
 
   // =========================================================
