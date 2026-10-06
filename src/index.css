@@ -532,50 +532,7 @@ p {
   border-radius: 0;
 }
 
-/* =========================================================
-   DOWNLOAD BUTTON
-   ========================================================= */
 
-.hush-download-button {
-  position: absolute;
-  left: 8px;
-  bottom: 8px;
-  z-index: 2;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-
-  padding: 7px 10px;
-
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 9px;
-
-  background: rgba(0, 0, 0, 0.65);
-  color: #fff;
-
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 600;
-
-  cursor: pointer;
-
-  transition: background 0.2s ease, transform 0.15s ease;
-}
-
-.hush-download-button:hover {
-  background: rgba(0, 0, 0, 0.85);
-}
-
-.hush-download-button:active {
-  transform: scale(0.96);
-}
-
-.hush-download-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-}
 
 /* =========================================================
    COMPOSER MEDIA

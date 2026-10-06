@@ -503,23 +503,6 @@ function Media({
   if (!items.length)
     return null;
 
-  // Creates a Cloudinary download URL for videos.
-  // fl_attachment tells Cloudinary to send the file
-  // as a downloadable attachment.
-  const getVideoDownloadUrl = (url) => {
-    if (
-      !url ||
-      !url.includes("/upload/")
-    ) {
-      return url;
-    }
-
-    return url.replace(
-      "/upload/",
-      "/upload/fl_attachment/"
-    );
-  };
-
   return (
     <>
       <div
@@ -530,88 +513,30 @@ function Media({
             const isVideo =
               m.type === "video";
 
-            const fileName =
-              m.name ||
-              `hush-image-${i + 1}.jpg`;
-
-            const videoFileName =
-              m.name ||
-              `hush-video-${i + 1}.mp4`;
-
             return (
               <div
                 className="hush-media-item"
                 key={`${m.url}-${i}`}
               >
                 {isVideo ? (
-                  <>
-                    {/* ==============================
-                        VIDEO
-                        ============================== */}
-
-                    <video
-                      src={m.url}
-                      controls
-                      playsInline
-                      preload="metadata"
-                    />
-
-                    {/* ==============================
-                        VIDEO DOWNLOAD
-                        ============================== */}
-
-                    <a
-                      href={getVideoDownloadUrl(
-                        m.url
-                      )}
-                      download={videoFileName}
-                      className="hush-download-button"
-                      aria-label="Download video"
-                      title="Download video"
-                    >
-                      <span aria-hidden="true">
-                        ↓
-                      </span>
-                      Download
-                    </a>
-                  </>
+                  <video
+                    src={m.url}
+                    controls
+                    playsInline
+                    preload="metadata"
+                  />
                 ) : (
-                  <>
-                    {/* ==============================
-                        IMAGE
-                        ============================== */}
-
-                    <img
-                      loading="lazy"
-                      alt="Attached by an anonymous user"
-                      src={m.url}
-                      onClick={() =>
-                        setSelectedImage(
-                          m.url
-                        )
-                      }
-                      style={{
-                        cursor: "pointer",
-                      }}
-                    />
-
-                    {/* ==============================
-                        IMAGE DOWNLOAD
-                        ============================== */}
-
-                    <a
-                      href={m.url}
-                      download={fileName}
-                      className="hush-download-button"
-                      aria-label="Download image"
-                      title="Download image"
-                    >
-                      <span aria-hidden="true">
-                        ↓
-                      </span>
-                      Download
-                    </a>
-                  </>
+                  <img
+                    loading="lazy"
+                    alt="Attached by an anonymous user"
+                    src={m.url}
+                    onClick={() =>
+                      setSelectedImage(m.url)
+                    }
+                    style={{
+                      cursor: "pointer",
+                    }}
+                  />
                 )}
               </div>
             );
@@ -633,8 +558,6 @@ function Media({
             setSelectedImage(null)
           }
         >
-          {/* Close button */}
-
           <button
             type="button"
             className="hush-image-lightbox-close"
@@ -645,8 +568,6 @@ function Media({
           >
             ×
           </button>
-
-          {/* Full-screen image */}
 
           <img
             src={selectedImage}
