@@ -497,76 +497,170 @@ function Rich({
 function Media({
   items,
 }) {
+  const [selectedImage, setSelectedImage] =
+    useState(null);
+
   if (!items.length)
     return null;
 
+  // Creates a Cloudinary download URL for videos.
+  // fl_attachment tells Cloudinary to send the file
+  // as a downloadable attachment.
+  const getVideoDownloadUrl = (url) => {
+    if (
+      !url ||
+      !url.includes("/upload/")
+    ) {
+      return url;
+    }
+
+    return url.replace(
+      "/upload/",
+      "/upload/fl_attachment/"
+    );
+  };
+
   return (
-    <div
-      className={`media n${items.length}`}
-    >
-      {items.map(
-        (m, i) => {
-          const isVideo =
-            m.type ===
-            "video";
+    <>
+      <div
+        className={`media n${items.length}`}
+      >
+        {items.map(
+          (m, i) => {
+            const isVideo =
+              m.type === "video";
 
-          const fileName =
-            m.name ||
-            `hush-image-${
-              i + 1
-            }.jpg`;
+            const fileName =
+              m.name ||
+              `hush-image-${i + 1}.jpg`;
 
-          return (
-            <div
-              className="hush-media-item"
-              key={`${m.url}-${i}`}
-            >
-              {isVideo ? (
-                <video
-                  src={m.url}
-                  controls
-                  playsInline
-                  preload="metadata"
-                />
-              ) : (
-                <>
-                 <img
-  loading="lazy"
-  alt="Attached by an anonymous user"
-  src={m.url}
-  onClick={(e) => {
-    e.currentTarget.requestFullscreen?.();
-  }}
-  style={{
-    cursor: "pointer",
-  }}
-/>
+            const videoFileName =
+              m.name ||
+              `hush-video-${i + 1}.mp4`;
 
-                  <a
-                    href={m.url}
-                    download={
-                      fileName
-                    }
-                    className="hush-download-button"
-                    aria-label="Download image"
-                    title="Download image"
-                  >
-                    <span aria-hidden="true">
-                      ↓
-                    </span>
+            return (
+              <div
+                className="hush-media-item"
+                key={`${m.url}-${i}`}
+              >
+                {isVideo ? (
+                  <>
+                    {/* ==============================
+                        VIDEO
+                        ============================== */}
 
-                    Download
-                  </a>
-                </>
-              )}
-            </div>
-          );
-        }
+                    <video
+                      src={m.url}
+                      controls
+                      playsInline
+                      preload="metadata"
+                    />
+
+                    {/* ==============================
+                        VIDEO DOWNLOAD
+                        ============================== */}
+
+                    <a
+                      href={getVideoDownloadUrl(
+                        m.url
+                      )}
+                      download={videoFileName}
+                      className="hush-download-button"
+                      aria-label="Download video"
+                      title="Download video"
+                    >
+                      <span aria-hidden="true">
+                        ↓
+                      </span>
+                      Download
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    {/* ==============================
+                        IMAGE
+                        ============================== */}
+
+                    <img
+                      loading="lazy"
+                      alt="Attached by an anonymous user"
+                      src={m.url}
+                      onClick={() =>
+                        setSelectedImage(
+                          m.url
+                        )
+                      }
+                      style={{
+                        cursor: "pointer",
+                      }}
+                    />
+
+                    {/* ==============================
+                        IMAGE DOWNLOAD
+                        ============================== */}
+
+                    <a
+                      href={m.url}
+                      download={fileName}
+                      className="hush-download-button"
+                      aria-label="Download image"
+                      title="Download image"
+                    >
+                      <span aria-hidden="true">
+                        ↓
+                      </span>
+                      Download
+                    </a>
+                  </>
+                )}
+              </div>
+            );
+          }
+        )}
+      </div>
+
+      {/* =================================================
+          FULL-SCREEN IMAGE VIEWER
+          ================================================= */}
+
+      {selectedImage && (
+        <div
+          className="hush-image-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full-screen image viewer"
+          onClick={() =>
+            setSelectedImage(null)
+          }
+        >
+          {/* Close button */}
+
+          <button
+            type="button"
+            className="hush-image-lightbox-close"
+            aria-label="Close image"
+            onClick={() =>
+              setSelectedImage(null)
+            }
+          >
+            ×
+          </button>
+
+          {/* Full-screen image */}
+
+          <img
+            src={selectedImage}
+            alt="Full-screen view"
+            className="hush-image-lightbox-image"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          />
+        </div>
       )}
-    </div>
+    </>
   );
 }
-
 // =========================================================
 // POST COMPOSER
 // =========================================================
