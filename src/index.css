@@ -14,12 +14,32 @@
   --body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-*, *::before, *::after {
-  box-sizing: border-box;
+/* =========================================================
+   DARK MODE
+   ========================================================= */
+
+:root[data-theme="dark"] {
+  --bg: #0f0d18;
+  --bg-2: #18152a;
+  --bg-3: #24203a;
+  --text: #f5f2ff;
+  --muted: #aaa4c4;
+  --line: rgba(255, 255, 255, 0.1);
+  --accent: #8b70ff;
+  --coral: #ff5275;
+  --mint: #20cfa0;
 }
 
 html {
   color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 #root {
@@ -64,7 +84,6 @@ p {
 
 /* =========================================================
    SHELL
-   Three-column desktop layout like X
    ========================================================= */
 
 .shell {
@@ -75,7 +94,9 @@ p {
   min-height: 100vh;
 }
 
-/* ---------- brand ---------- */
+/* =========================================================
+   BRAND
+   ========================================================= */
 
 .brand {
   font-family: var(--display);
@@ -93,7 +114,49 @@ p {
   -webkit-text-fill-color: var(--coral);
 }
 
-/* ---------- left navigation ---------- */
+/* =========================================================
+   THEME TOGGLE
+   ========================================================= */
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 90%;
+  margin: 4px auto 12px;
+
+  padding: 10px 14px;
+
+  background: var(--bg-2);
+  color: var(--text);
+
+  border: 1px solid var(--line);
+  border-radius: 999px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  transition:
+    background 0.15s,
+    transform 0.15s;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-3);
+}
+
+.theme-toggle:active {
+  transform: scale(0.97);
+}
+
+.theme-toggle span {
+  color: var(--muted);
+}
+
+/* =========================================================
+   LEFT NAVIGATION
+   ========================================================= */
 
 .rail {
   position: sticky;
@@ -175,6 +238,10 @@ p {
   font-size: 26px;
 }
 
+.mobile-top {
+  display: none;
+}
+
 .tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -218,7 +285,9 @@ p {
   font-size: 20px;
 }
 
-/* ---------- search ---------- */
+/* =========================================================
+   SEARCH
+   ========================================================= */
 
 .search {
   display: flex;
@@ -330,7 +399,9 @@ p {
   margin-top: 6px;
 }
 
-/* ---------- icon button ---------- */
+/* =========================================================
+   ICON BUTTON
+   ========================================================= */
 
 .icon-btn {
   background: none;
@@ -356,7 +427,9 @@ p {
   cursor: not-allowed;
 }
 
-/* ---------- buttons ---------- */
+/* =========================================================
+   BUTTONS
+   ========================================================= */
 
 .btn {
   background: var(--accent);
@@ -387,7 +460,6 @@ p {
 
 /* =========================================================
    MEDIA
-   This section fixes the 1 / 2 / 3 / 4 image layouts.
    ========================================================= */
 
 .media {
@@ -400,7 +472,6 @@ p {
   background: #000;
 }
 
-/* All media fills its grid cell. */
 .media img,
 .media video {
   width: 100%;
@@ -408,10 +479,6 @@ p {
   object-fit: cover;
   display: block;
 }
-
-/* =========================================================
-   ONE MEDIA ITEM
-   ========================================================= */
 
 .media.n1 {
   grid-template-columns: 1fr;
@@ -424,18 +491,10 @@ p {
   background: #000;
 }
 
-/* =========================================================
-   TWO MEDIA ITEMS
-   ========================================================= */
-
 .media.n2 {
   grid-template-columns: 1fr 1fr;
   aspect-ratio: 16 / 9;
 }
-
-/* =========================================================
-   THREE MEDIA ITEMS
-   ========================================================= */
 
 .media.n3 {
   grid-template-columns: 1fr 1fr;
@@ -447,24 +506,12 @@ p {
   grid-row: span 2;
 }
 
-/* =========================================================
-   FOUR MEDIA ITEMS
-
-   Four images are displayed as a proper 2 x 2 grid.
-   ========================================================= */
-
 .media.n4 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   aspect-ratio: 1 / 1;
 }
-
-/* =========================================================
-   MEDIA ITEM
-
-   Each individual image/video becomes a grid cell.
-   ========================================================= */
 
 .hush-media-item {
   position: relative;
@@ -475,7 +522,6 @@ p {
   overflow: hidden;
 }
 
-/* Images and videos inside a grid cell. */
 .hush-media-item > img,
 .hush-media-item > video {
   display: block;
@@ -488,9 +534,6 @@ p {
 
 /* =========================================================
    DOWNLOAD BUTTON
-
-   The download button now sits over the media instead of
-   taking up another row underneath it.
    ========================================================= */
 
 .hush-download-button {
@@ -536,8 +579,6 @@ p {
 
 /* =========================================================
    COMPOSER MEDIA
-
-   These styles are used when selecting media before posting.
    ========================================================= */
 
 .thumb {
@@ -631,7 +672,9 @@ p {
   background: color-mix(in srgb, var(--coral) 15%, transparent);
 }
 
-/* ---------- post text ---------- */
+/* =========================================================
+   POST TEXT
+   ========================================================= */
 
 .text {
   font-size: 16px;
@@ -656,11 +699,6 @@ p {
    PINNED POST
    ========================================================= */
 
-/*
-  Small label shown when a post is pinned.
-  The JavaScript controls when this element appears.
-*/
-
 .pinned-label {
   display: inline-flex;
   align-items: center;
@@ -673,11 +711,6 @@ p {
 
   color: var(--accent);
 }
-
-/*
-  Gives the pinned post a very subtle visual distinction
-  without making it look completely different.
-*/
 
 .post:has(.pinned-label) {
   background: color-mix(in srgb, var(--accent) 3%, var(--bg));
@@ -795,7 +828,9 @@ button.act:hover {
   border-color: var(--accent);
 }
 
-/* ---------- empty state ---------- */
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
 
 .empty {
   text-align: center;
@@ -827,7 +862,9 @@ button.act:hover {
   margin: 0;
 }
 
-/* ---------- cards ---------- */
+/* =========================================================
+   CARDS
+   ========================================================= */
 
 .card {
   background: var(--bg-2);
@@ -851,7 +888,9 @@ button.act:hover {
   font-size: 14px;
 }
 
-/* ---------- trending ---------- */
+/* =========================================================
+   TRENDING
+   ========================================================= */
 
 .trend {
   display: flex;
@@ -964,6 +1003,18 @@ button.act:hover {
     display: grid;
     place-items: center;
   }
+
+  .theme-toggle {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    justify-content: center;
+    margin: 4px auto 12px;
+  }
+
+  .theme-toggle span {
+    display: none;
+  }
 }
 
 /* =========================================================
@@ -985,215 +1036,47 @@ button.act:hover {
     border-inline: 0;
   }
 
+  .mobile-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+  }
+
   .mobile-brand {
     display: block;
+    padding: 12px 6px 6px;
+    font-size: 24px;
   }
 
-  /* ---------- bottom navigation ---------- */
-
-  .bottom {
-    display: flex;
-    justify-content: space-around;
-
-    position: fixed;
-    inset: auto 0 0 0;
-
-    z-index: 10;
-
-    background: color-mix(in srgb, var(--bg) 92%, transparent);
-    backdrop-filter: blur(12px);
-
-    border-top: 1px solid var(--line);
-
-    padding: 6px 0 max(6px, env(safe-area-inset-bottom));
-  }
-
-  .bottom button {
-    background: none;
-    border: 0;
-    padding: 12px 28px;
-    color: var(--muted);
-  }
-
-  .bottom button.on {
-    color: var(--accent);
-  }
-
-  /* ---------- floating action button ---------- */
-
-  .fab {
+  .mobile-theme-toggle {
     display: grid;
+
     place-items: center;
 
-    position: fixed;
-
-    right: 16px;
-    bottom: 80px;
-
-    width: 56px;
-    height: 56px;
-
-    border-radius: 50%;
-    border: 0;
-
-    background: var(--accent);
-    color: #fff;
-
-    box-shadow: 0 10px 30px -8px var(--accent);
-
-    z-index: 11;
-  }
-
-  .anon-note {
-    display: none;
-  }
-
-  .actions {
-    max-width: none;
-  }
-
-  /*
-    On smaller screens, keep four media items square
-    so the 2 x 2 layout remains clean.
-  */
-
-  .media.n4 {
-    aspect-ratio: 1 / 1;
-  }
-
-  /*
-    Slightly smaller download buttons on phones.
-  */
-
-  .hush-download-button {
-    left: 6px;
-    bottom: 6px;
-    padding: 6px 8px;
-    font-size: 11px;
-  }
-}
-
-/* =========================================================
-   VERY SMALL PHONES
-   ========================================================= */
-
-@media (max-width: 420px) {
-
-  .composer,
-  .post {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  .ghost-avatar {
     width: 40px;
     height: 40px;
+
+    margin: 0;
+
+    padding: 0;
+
+    background: var(--bg-2);
+
+    border: 1px solid var(--line);
+
+    border-radius: 50%;
+
     font-size: 18px;
   }
 
-  .composer textarea {
-    font-size: 18px;
+  .mobile-theme-toggle span {
+    display: none;
   }
-
-  .media {
-    border-radius: 12px;
-  }
-
-  /* Small download button used ONLY on images. */
-.hush-download-button {
-  position: absolute;
-  left: 7px;
-  bottom: 7px;
-  z-index: 2;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-
-  padding: 5px 8px;
-
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 7px;
-
-  background: rgba(0, 0, 0, 0.58);
-  color: #fff;
-
-  text-decoration: none;
-  font-size: 10px;
-  font-weight: 600;
-
-  cursor: pointer;
-
-  transition: background 0.2s ease, transform 0.15s ease;
-}
-
-.hush-download-button:hover {
-  background: rgba(0, 0, 0, 0.78);
-}
-
-.hush-download-button:active {
-  transform: scale(0.95);
-}
-
-.hush-download-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-}
-
-/* =========================================================
-   REDUCED MOTION
-   ========================================================= */
-
-@media (prefers-reduced-motion: reduce) {
-
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-
-/* =========================================================
-   HUSH — MOBILE APP VIEW (Tellonym-style layout)
-
-   Added at the very bottom so it overrides the base mobile
-   rules above. Everything is wrapped in
-   @media (max-width: 700px), so desktop and tablet layouts
-   are 100% unaffected. Only colours/variables already in
-   :root are used.
-   ========================================================= */
-
-@media (max-width: 700px) {
-
-  /* ---------- page: flat, full-width, app-like ---------- */
-
-  body {
-    background: var(--bg);
-  }
-
-  .shell {
-    padding-bottom: 76px;
-  }
-
-  .timeline {
-    border-inline: 0;
-  }
-
-  /* ---------- top bar: centred brand, then tabs ---------- */
 
   .sticky-top {
     border-bottom: 1px solid var(--line);
     padding-top: env(safe-area-inset-top, 0px);
-  }
-
-  .mobile-brand {
-    display: block;
-    text-align: center;
-    padding: 12px 16px 6px;
-    font-size: 24px;
   }
 
   .tabs button {
@@ -1212,15 +1095,11 @@ button.act:hover {
     font-size: 17px;
   }
 
-  /* ---------- search: soft pill ---------- */
-
   .search {
     margin: 10px 14px;
     padding: 9px 14px;
     font-size: 14px;
   }
-
-  /* ---------- composer: "Write a Tell" underline style ---------- */
 
   .composer {
     padding: 14px;
@@ -1241,8 +1120,6 @@ button.act:hover {
     margin-top: 6px;
     padding-top: 4px;
   }
-
-  /* ---------- feed: clean, flat rows with thin dividers ---------- */
 
   .post {
     gap: 10px;
@@ -1283,7 +1160,6 @@ button.act:hover {
     white-space: nowrap;
   }
 
-  /* three-dots / delete button pinned to the right */
   .del {
     margin-left: auto;
     padding: 4px;
@@ -1298,8 +1174,6 @@ button.act:hover {
   .tag {
     font-weight: 600;
   }
-
-  /* ---------- actions: compact row like the "Liked by" line ---------- */
 
   .actions {
     max-width: none;
@@ -1317,7 +1191,360 @@ button.act:hover {
     height: 18px;
   }
 
-  /* ---------- replies / thread ---------- */
+  .thread {
+    gap: 12px;
+    margin-top: 8px;
+    padding-top: 10px;
+  }
+
+  .reply-box input {
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+
+  .bottom {
+    display: flex;
+    justify-content: space-around;
+
+    position: fixed;
+    inset: auto 0 0 0;
+
+    z-index: 10;
+
+    background: color-mix(in srgb, var(--bg) 96%, transparent);
+
+    backdrop-filter: blur(12px);
+
+    border-top: 1px solid var(--line);
+
+    padding: 4px 0 max(6px, env(safe-area-inset-bottom));
+  }
+
+  .bottom button {
+    background: none;
+    border: 0;
+    padding: 10px 26px;
+    color: var(--muted);
+  }
+
+  .bottom button.on {
+    color: var(--accent);
+  }
+
+  .fab {
+    display: grid;
+    place-items: center;
+
+    position: fixed;
+
+    left: 50%;
+    right: auto;
+
+    bottom: calc(
+      10px +
+      env(safe-area-inset-bottom, 0px)
+    );
+
+    transform: translateX(-50%);
+
+    width: 50px;
+    height: 50px;
+
+    border-radius: 50%;
+    border: 0;
+
+    background: var(--accent);
+    color: #fff;
+
+    box-shadow:
+      0 6px 16px -6px
+      var(--accent);
+
+    z-index: 12;
+  }
+
+  .fab:active {
+    transform: translateX(-50%) scale(0.94);
+  }
+
+  .toast {
+    bottom: 96px;
+    font-size: 14px;
+    padding: 9px 16px;
+  }
+
+  .empty {
+    padding: 48px 20px;
+    font-size: 16px;
+  }
+
+  .media.n4 {
+    aspect-ratio: 1 / 1;
+  }
+
+  .hush-download-button {
+    left: 6px;
+    bottom: 6px;
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+}
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 420px) {
+
+  .composer,
+  .post {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .ghost-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .composer textarea {
+    font-size: 18px;
+  }
+
+  .media {
+    border-radius: 12px;
+  }
+
+  .hush-download-button {
+    position: absolute;
+    left: 7px;
+    bottom: 7px;
+    z-index: 2;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+
+    padding: 5px 8px;
+
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 7px;
+
+    background: rgba(0, 0, 0, 0.58);
+    color: #fff;
+
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+      background 0.2s ease,
+      transform 0.15s ease;
+  }
+
+  .hush-download-button:hover {
+    background: rgba(0, 0, 0, 0.78);
+  }
+
+  .hush-download-button:active {
+    transform: scale(0.95);
+  }
+
+  .hush-download-button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* =========================================================
+   HUSH — MOBILE APP VIEW
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  body {
+    background: var(--bg);
+  }
+
+  .shell {
+    padding-bottom: 76px;
+  }
+
+  .timeline {
+    border-inline: 0;
+  }
+
+  .sticky-top {
+    border-bottom: 1px solid var(--line);
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .mobile-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+  }
+
+  .mobile-brand {
+    display: block;
+    text-align: center;
+    padding: 12px 6px 6px;
+    font-size: 24px;
+  }
+
+  .mobile-theme-toggle {
+    display: grid;
+    place-items: center;
+
+    width: 40px;
+    height: 40px;
+
+    margin: 0;
+
+    padding: 0;
+
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+
+    border-radius: 50%;
+
+    font-size: 18px;
+  }
+
+  .mobile-theme-toggle span {
+    display: none;
+  }
+
+  .tabs button {
+    padding: 12px 0;
+    font-size: 14px;
+  }
+
+  .tabs button.on::after {
+    width: 40px;
+    height: 3px;
+  }
+
+  .page-title {
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 17px;
+  }
+
+  .search {
+    margin: 10px 14px;
+    padding: 9px 14px;
+    font-size: 14px;
+  }
+
+  .composer {
+    padding: 14px;
+    gap: 10px;
+    border-bottom: 8px solid var(--bg-2);
+  }
+
+  .composer textarea {
+    font-size: 17px;
+    min-height: 44px;
+    padding: 6px 0;
+    border-bottom: 2px solid var(--accent);
+    border-radius: 0;
+  }
+
+  .composer-bar {
+    border-top: 0;
+    margin-top: 6px;
+    padding-top: 4px;
+  }
+
+  .post {
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .post:hover {
+    background: none;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .post header {
+    gap: 5px;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .post header strong {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .handle,
+  .dot {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .del {
+    margin-left: auto;
+    padding: 4px;
+  }
+
+  .text {
+    font-size: 14.5px;
+    line-height: 1.4;
+    margin-top: 4px;
+  }
+
+  .tag {
+    font-weight: 600;
+  }
+
+  .actions {
+    max-width: none;
+    margin-top: 6px;
+    margin-left: -6px;
+  }
+
+  .act {
+    padding: 5px 6px;
+    font-size: 12px;
+  }
+
+  .act svg {
+    width: 18px;
+    height: 18px;
+  }
 
   .thread {
     gap: 12px;
@@ -1330,13 +1557,14 @@ button.act:hover {
     font-size: 14px;
   }
 
-  /* ---------- bottom tab bar ---------- */
-
   .bottom {
     justify-content: space-around;
     align-items: center;
+
     background: color-mix(in srgb, var(--bg) 96%, transparent);
+
     border-top: 1px solid var(--line);
+
     padding: 4px 0 max(6px, env(safe-area-inset-bottom));
   }
 
@@ -1349,16 +1577,24 @@ button.act:hover {
     color: var(--accent);
   }
 
-  /* ---------- centre "+" button, sitting in the middle of the bar ---------- */
-
   .fab {
     left: 50%;
     right: auto;
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+
+    bottom: calc(
+      10px +
+      env(safe-area-inset-bottom, 0px)
+    );
+
     transform: translateX(-50%);
+
     width: 50px;
     height: 50px;
-    box-shadow: 0 6px 16px -6px var(--accent);
+
+    box-shadow:
+      0 6px 16px -6px
+      var(--accent);
+
     z-index: 12;
   }
 
@@ -1366,18 +1602,26 @@ button.act:hover {
     transform: translateX(-50%) scale(0.94);
   }
 
-  /* ---------- toast above the bottom bar ---------- */
-
   .toast {
     bottom: 96px;
     font-size: 14px;
     padding: 9px 16px;
   }
 
-  /* ---------- empty state ---------- */
-
   .empty {
     padding: 48px 20px;
     font-size: 16px;
   }
+}
+
+/* =========================================================
+   DARK MODE MEDIA
+   ========================================================= */
+
+:root[data-theme="dark"] .media {
+  background: #000;
+}
+
+:root[data-theme="dark"] .hush-download-button {
+  background: rgba(0, 0, 0, 0.75);
 }

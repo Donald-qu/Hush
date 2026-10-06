@@ -120,6 +120,7 @@ const ago = (t) => {
   );
 
   if (s < 45) return "now";
+
   if (s < 3600)
     return `${Math.max(
       1,
@@ -167,13 +168,6 @@ const arr = (v) =>
 // =========================================================
 // NORMALIZE POSTS
 // =========================================================
-//
-// Important:
-// Firestore is now the source of truth.
-//
-// We also remove duplicate post IDs here as
-// an extra safety measure.
-//
 
 const normalizePosts = (list) => {
   const seen = new Set();
@@ -210,12 +204,6 @@ const normalizePosts = (list) => {
       likes:
         Number(p.likes) || 0,
 
-      reposts:
-        Number(p.reposts) || 0,
-
-      views:
-        Number(p.views) || 0,
-
       replies: arr(
         p.replies
       ).map((r) => ({
@@ -241,6 +229,11 @@ const normalizePosts = (list) => {
             r && r.time
           ) || Date.now(),
       })),
+
+      // PINNED STATUS
+      pinned: Boolean(
+        p.pinned
+      ),
     }))
     .filter((post) => {
       if (seen.has(post.id)) {
@@ -377,14 +370,8 @@ const I = {
   reply:
     "M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z",
 
-  repost:
-    "M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3",
-
   heart:
     "M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z",
-
-  views:
-    "M4 20V10M10 20V4M16 20v-8M22 20H2",
 
   share:
     "M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13",
@@ -543,11 +530,17 @@ function Media({
                 />
               ) : (
                 <>
-                  <img
-                    src={m.url}
-                    alt="Attached by an anonymous user"
-                    loading="lazy"
-                  />
+                 <img
+  loading="lazy"
+  alt="Attached by an anonymous user"
+  src={m.url}
+  onClick={(e) => {
+    e.currentTarget.requestFullscreen?.();
+  }}
+  style={{
+    cursor: "pointer",
+  }}
+/>
 
                   <a
                     href={m.url}
@@ -976,10 +969,8 @@ function Composer({
 function Post({
   post,
   liked,
-  reposted,
   mine,
   onLike,
-  onRepost,
   onReply,
   onTag,
   onShare,
@@ -1071,31 +1062,6 @@ function Post({
           </button>
 
           <button
-            className={`act repost ${
-              reposted
-                ? "on"
-                : ""
-            }`}
-            onClick={() =>
-              onRepost(
-                post.id
-              )
-            }
-            aria-pressed={
-              reposted
-            }
-            aria-label="Repost"
-          >
-            <Icon
-              d={I.repost}
-            />
-
-            {compact(
-              post.reposts
-            )}
-          </button>
-
-          <button
             className={`act like ${
               liked
                 ? "on"
@@ -1120,19 +1086,6 @@ function Post({
               post.likes
             )}
           </button>
-
-          <span
-            className="act static"
-            aria-label="Views"
-          >
-            <Icon
-              d={I.views}
-            />
-
-            {compact(
-              post.views
-            )}
-          </span>
 
           <button
             className={`act pin ${
@@ -1270,24 +1223,40 @@ function Hush() {
   ] = useState(true);
 
   // =========================================================
-  // REAL-TIME FIRESTORE POSTS
+// HUSH THEME
+// =========================================================
+
+const [theme, setTheme] = useState(() => {
+  const savedTheme =
+    localStorage.getItem("hush2:theme");
+
+  return savedTheme === "dark"
+    ? "dark"
+    : "light";
+});
+
+// Apply the selected theme.
+useEffect(() => {
+  document.documentElement.dataset.theme =
+    theme;
+
+  localStorage.setItem(
+    "hush2:theme",
+    theme
+  );
+}, [theme]);
+
+// Toggle between light and dark mode.
+const toggleTheme = () => {
+  setTheme((currentTheme) =>
+    currentTheme === "light"
+      ? "dark"
+      : "light"
+  );
+};
+
   // =========================================================
-  //
-  // Firestore is the ONLY source of truth for posts.
-  //
-  // If a supervisor deletes a document:
-  //
-  // Firestore
-  //     ↓
-  // onSnapshot
-  //     ↓
-  // snapshot.docs no longer contains it
-  //     ↓
-  // setPosts(...)
-  //     ↓
-  // post disappears from the app
-  //
-  // No browser refresh is required.
+  // REAL-TIME FIRESTORE POSTS
   // =========================================================
 
   useEffect(() => {
@@ -1345,21 +1314,6 @@ function Hush() {
   }, []);
 
   // =========================================================
-  // PINNED POST
-  // =========================================================
-
-  const [
-    pinnedPost,
-    setPinnedPost,
-  ] = useState(() => {
-    return (
-      localStorage.getItem(
-        "hush2:pinned"
-      ) || null
-    );
-  });
-
-  // =========================================================
   // LOCAL LIKE STATE
   // =========================================================
 
@@ -1372,18 +1326,6 @@ function Hush() {
         )
       )
     );
-
-  const [
-    reposts,
-    setReposts,
-  ] = useState(() =>
-    arr(
-      load(
-        "hush2:reposts",
-        []
-      )
-    )
-  );
 
   const [mine, setMine] =
     useState(() =>
@@ -1404,9 +1346,6 @@ function Hush() {
   const [query, setQuery] =
     useState("");
 
-  const [toast, setToast] =
-    useState("");
-
   const [, tick] =
     useState(0);
 
@@ -1424,15 +1363,6 @@ function Hush() {
         likes
       ),
     [likes]
-  );
-
-  useEffect(
-    () =>
-      save(
-        "hush2:reposts",
-        reposts
-      ),
-    [reposts]
   );
 
   useEffect(
@@ -1464,25 +1394,6 @@ function Hush() {
   }, []);
 
   // =========================================================
-  // TOAST
-  // =========================================================
-
-  useEffect(() => {
-    if (!toast)
-      return;
-
-    const t =
-      setTimeout(
-        () =>
-          setToast(""),
-        2200
-      );
-
-    return () =>
-      clearTimeout(t);
-  }, [toast]);
-
-  // =========================================================
   // CREATE POST
   // =========================================================
 
@@ -1501,10 +1412,6 @@ function Hush() {
     if (
       media.length > 0
     ) {
-      setToast(
-        "Uploading your media..."
-      );
-
       try {
         uploadedMedia =
           await Promise.all(
@@ -1550,10 +1457,6 @@ function Hush() {
           error
         );
 
-        setToast(
-          "Media upload failed."
-        );
-
         throw new Error(
           "Your image or video could not be uploaded."
         );
@@ -1575,11 +1478,9 @@ function Hush() {
 
       likes: 0,
 
-      reposts: 0,
-
-      views: 1,
-
       replies: [],
+
+      pinned: false,
     };
 
     try {
@@ -1592,15 +1493,6 @@ function Hush() {
         newPost
       );
 
-      // IMPORTANT:
-      // Do NOT call setPosts() here.
-      //
-      // onSnapshot() will receive this new
-      // Firestore document automatically.
-      //
-      // This prevents Latest from displaying
-      // the same post twice.
-
       setMine(
         (currentMine) => [
           ...currentMine,
@@ -1612,10 +1504,6 @@ function Hush() {
 
       setView("home");
 
-      setToast(
-        "Post published"
-      );
-
       console.log(
         "✅ Hush post saved to Firestore:",
         id
@@ -1626,10 +1514,6 @@ function Hush() {
         error
       );
 
-      setToast(
-        "Post could not be saved. Check the console."
-      );
-
       throw error;
     }
   };
@@ -1638,30 +1522,75 @@ function Hush() {
   // PIN / UNPIN
   // =========================================================
 
-  const togglePin = (
-    id
-  ) => {
-    setPinnedPost(
-      (current) => {
-        const next =
-          current === id
-            ? null
-            : id;
+  const togglePin = async (id) => {
+    const post =
+      posts.find(
+        (p) =>
+          p.id === id
+      );
 
-        if (next) {
-          localStorage.setItem(
-            "hush2:pinned",
-            next
-          );
-        } else {
-          localStorage.removeItem(
-            "hush2:pinned"
-          );
-        }
+    if (!post)
+      return;
 
-        return next;
+    const currentlyPinned =
+      Boolean(post.pinned);
+
+    try {
+      if (
+        currentlyPinned
+      ) {
+        await updateDoc(
+          doc(
+            db,
+            "posts",
+            id
+          ),
+          {
+            pinned: false,
+          }
+        );
+
+        return;
       }
-    );
+
+      const previousPinned =
+        posts.find(
+          (p) =>
+            p.pinned &&
+            p.id !== id
+        );
+
+      if (
+        previousPinned
+      ) {
+        await updateDoc(
+          doc(
+            db,
+            "posts",
+            previousPinned.id
+          ),
+          {
+            pinned: false,
+          }
+        );
+      }
+
+      await updateDoc(
+        doc(
+          db,
+          "posts",
+          id
+        ),
+        {
+          pinned: true,
+        }
+      );
+    } catch (error) {
+      console.error(
+        "❌ Failed to update pinned post:",
+        error
+      );
+    }
   };
 
   // =========================================================
@@ -1704,68 +1633,9 @@ function Hush() {
                   id,
                 ]
         );
-
-        // Do NOT manually update posts.
-        //
-        // Firestore onSnapshot will receive
-        // the changed likes value.
       } catch (error) {
         console.error(
           "❌ Error updating like:",
-          error
-        );
-      }
-    };
-
-  // =========================================================
-  // REPOST — FIRESTORE
-  // =========================================================
-
-  const toggleRepost =
-    async (id) => {
-      const alreadyReposted =
-        reposts.includes(
-          id
-        );
-
-      try {
-        await updateDoc(
-          doc(
-            db,
-            "posts",
-            id
-          ),
-          {
-            reposts:
-              increment(
-                alreadyReposted
-                  ? -1
-                  : 1
-              ),
-          }
-        );
-
-        setReposts(
-          (
-            currentReposts
-          ) =>
-            alreadyReposted
-              ? currentReposts.filter(
-                  (x) =>
-                    x !== id
-                )
-              : [
-                  ...currentReposts,
-                  id,
-                ]
-        );
-
-        // Do NOT manually update posts.
-        //
-        // Firestore onSnapshot handles it.
-      } catch (error) {
-        console.error(
-          "❌ Error updating repost:",
           error
         );
       }
@@ -1804,10 +1674,6 @@ function Hush() {
             ),
         }
       );
-
-      // Do NOT manually update posts.
-      //
-      // Firestore onSnapshot handles the new reply.
     } catch (error) {
       console.error(
         "❌ Error saving reply:",
@@ -1830,13 +1696,10 @@ function Hush() {
       await navigator.clipboard.writeText(
         url
       );
-
-      setToast(
-        "Link copied"
-      );
-    } catch {
-      setToast(
-        "Couldn't copy the link"
+    } catch (error) {
+      console.error(
+        "❌ Couldn't copy the link:",
+        error
       );
     }
   };
@@ -1919,10 +1782,8 @@ function Hush() {
     useMemo(() => {
       const score = (p) =>
         p.likes * 2 +
-        p.reposts * 3 +
         p.replies.length *
-          4 +
-        p.views / 50;
+          4;
 
       let list = [
         ...posts,
@@ -1981,14 +1842,12 @@ function Hush() {
       );
 
       if (
-        view === "home" &&
-        pinnedPost
+        view === "home"
       ) {
         const pinned =
           list.find(
             (p) =>
-              p.id ===
-              pinnedPost
+              p.pinned
           );
 
         if (pinned) {
@@ -1998,7 +1857,7 @@ function Hush() {
             ...list.filter(
               (p) =>
                 p.id !==
-                pinnedPost
+                pinned.id
             ),
           ];
         }
@@ -2010,7 +1869,6 @@ function Hush() {
       view,
       tab,
       query,
-      pinnedPost,
     ]);
 
   // =========================================================
@@ -2047,6 +1905,33 @@ function Hush() {
         <div className="brand">
           hush<span>.</span>
         </div>
+
+        <button
+          className="theme-toggle"
+          onClick={
+            toggleTheme
+          }
+          aria-label={
+            theme === "light"
+              ? "Switch to dark mode"
+              : "Switch to light mode"
+          }
+          title={
+            theme === "light"
+              ? "Dark mode"
+              : "Light mode"
+          }
+        >
+          {theme === "light"
+            ? "🌙"
+            : "☀️"}
+
+          <span>
+            {theme === "light"
+              ? "Dark mode"
+              : "Light mode"}
+          </span>
+        </button>
 
         <nav aria-label="Main">
           {nav.map((n) => (
@@ -2092,8 +1977,31 @@ function Hush() {
 
       <main className="timeline">
         <div className="sticky-top">
-          <div className="mobile-brand brand">
-            hush<span>.</span>
+          <div className="mobile-top">
+            <div className="mobile-brand brand">
+              hush<span>.</span>
+            </div>
+
+            <button
+              className="theme-toggle mobile-theme-toggle"
+              onClick={
+                toggleTheme
+              }
+              aria-label={
+                theme === "light"
+                  ? "Switch to dark mode"
+                  : "Switch to light mode"
+              }
+              title={
+                theme === "light"
+                  ? "Dark mode"
+                  : "Light mode"
+              }
+            >
+              {theme === "light"
+                ? "🌙"
+                : "☀️"}
+            </button>
           </div>
 
           {view ===
@@ -2254,17 +2162,11 @@ function Hush() {
                   liked={likes.includes(
                     p.id
                   )}
-                  reposted={reposts.includes(
-                    p.id
-                  )}
                   mine={mine.includes(
                     p.id
                   )}
                   onLike={
                     toggleLike
-                  }
-                  onRepost={
-                    toggleRepost
                   }
                   onReply={
                     addReply
@@ -2279,8 +2181,9 @@ function Hush() {
                     togglePin
                   }
                   pinned={
-                    pinnedPost ===
-                    p.id
+                    Boolean(
+                      p.pinned
+                    )
                   }
                 />
               )
@@ -2364,15 +2267,6 @@ function Hush() {
           d={I.plus}
         />
       </button>
-
-      {toast && (
-        <div
-          className="toast"
-          role="status"
-        >
-          {toast}
-        </div>
-      )}
     </div>
   );
 }
