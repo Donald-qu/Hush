@@ -9,7 +9,11 @@ import {
   arrayRemove,
   runTransaction,
 } from "firebase/firestore";
+import AdminDashboard from "./AdminDashboard";
 import { db } from "./firebase";
+import AdminLogin from "./AdminLogin";
+import { auth } from "./firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const MAX_LEN = 800;
 const MAX_MEDIA = 20;
@@ -367,49 +371,62 @@ function Rich({ text, onTag }) {
 
 function Media({ items }) {
   const [selectedImage, setSelectedImage] = useState(null);
+  const galleryRef = useRef(null);
 
-  // Close the full-screen viewer with the Escape key
   useEffect(() => {
     if (!selectedImage) return;
-
-    const onKey = (e) => {
-      if (e.key === "Escape") setSelectedImage(null);
+    const onKey = (event) => {
+      if (event.key === "Escape") setSelectedImage(null);
     };
-
     window.addEventListener("keydown", onKey);
-
     return () => window.removeEventListener("keydown", onKey);
   }, [selectedImage]);
 
-  if (!items.length) return null;
+  if (!items?.length) return null;
+
+  const scrollGallery = (direction) => {
+    const gallery = galleryRef.current;
+    if (!gallery) return;
+    const tile = gallery.querySelector(".hush-media-item");
+    const distance = tile ? tile.getBoundingClientRect().width + 10 : gallery.clientWidth;
+    gallery.scrollBy({ left: direction * distance, behavior: "smooth" });
+  };
 
   return (
     <>
-      <div className={`media n${items.length}`}>
-        {items.map((m, i) => {
-          const isVideo = m.type === "video";
-
-          return (
-            <div className="hush-media-item" key={`${m.url}-${i}`}>
-              {isVideo ? (
-                <video
-                  src={m.url}
-                  controls
-                  playsInline
-                  preload="metadata"
-                />
-              ) : (
-                <img
-                  loading="lazy"
-                  alt="Attached by an anonymous user"
-                  src={m.url}
-                  onClick={() => setSelectedImage(m.url)}
-                  style={{ cursor: "pointer" }}
-                />
-              )}
-            </div>
-          );
-        })}
+      <div className="hush-gallery-shell">
+        <div
+          className={`media hush-horizontal-gallery ${items.length === 1 ? "hush-single-media" : ""}`}
+          ref={galleryRef}
+          role="region"
+          aria-label="Post attachments"
+          tabIndex={items.length > 1 ? 0 : undefined}
+        >
+          {items.map((m, i) => {
+            const isVideo = m.type === "video" || m.resourceType === "video";
+            return (
+              <div className="hush-media-item" key={`${m.url}-${i}`}>
+                {isVideo ? (
+                  <video src={m.url} controls playsInline preload="metadata" />
+                ) : (
+                  <img
+                    loading="lazy"
+                    alt={`Attachment ${i + 1} of ${items.length}`}
+                    src={m.url}
+                    onClick={() => setSelectedImage(m.url)}
+                    style={{ cursor: "pointer" }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {items.length > 1 && (
+          <div className="hush-gallery-controls">
+            
+            
+          </div>
+        )}
       </div>
 
       {selectedImage && (
@@ -428,12 +445,11 @@ function Media({ items }) {
           >
             ×
           </button>
-
           <img
             src={selectedImage}
             alt="Full-screen view"
             className="hush-image-lightbox-image"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
           />
         </div>
       )}
@@ -579,7 +595,7 @@ function Composer({
         />
 
         {media.length > 0 && (
-          <div className={`media n${media.length} editable`}>
+          <div className="media hush-composer-gallery editable">
             {media.map((m, i) => (
               <div className="thumb" key={m.url}>
                 {m.type === "video" ? (
@@ -1537,10 +1553,72 @@ class ErrorBoundary extends React.Component {
 // ROOT COMPONENT
 // =========================================================
 
+
+
 export default function App() {
-  return (
-    <ErrorBoundary>
-      <Hush />
-    </ErrorBoundary>
-  );
+  const isAdminPage =
+    window.location.pathname.replace(/\/+$/, "") === "/admin";
+
+  const [adminUser, setAdminUser] = useState(null);
+  const [checkingAuth, setCheckingAuth] = useState(isAdminPage);
+
+  useEffect(() => {
+    if (!isAdminPage) return;
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setAdminUser(null);
+        setCheckingAuth(false);
+        return;
+      }
+
+      try {
+        const tokenResult = await user.getIdTokenResult(true);
+
+        if (tokenResult.claims.admin === true) {
+          setAdminUser(user);
+        } else {
+          setAdminUser(null);
+          await signOut(auth);
+        }
+      } catch (error) {
+        console.error("Admin verification failed:", error);
+        setAdminUser(null);
+      } finally {
+        setCheckingAuth(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [isAdminPage]);
+
+  // Normal Hush website
+  if (!isAdminPage) {
+    return (
+      <ErrorBoundary>
+        <Hush />
+      </ErrorBoundary>
+    );
+  }
+
+  // Check administrator authentication
+  if (checkingAuth) {
+    return (
+      <div style={{ padding: 40 }}>
+        Verifying administrator...
+      </div>
+    );
+  }
+
+  // Display login if the administrator isn't signed in
+  if (!adminUser) {
+    return (
+      <AdminLogin
+        onSuccess={(user) => setAdminUser(user)}
+      />
+    );
+  }
+
+  // Display the administrator dashboard
+  return <AdminDashboard user={adminUser} />;
 }

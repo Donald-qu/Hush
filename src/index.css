@@ -1715,3 +1715,760 @@ button.act:hover {
   .hush-download-button:active {
     transform: scale(0.97);
   }
+  /* =========================================================
+   HUSH ADMIN LOGIN
+   ========================================================= */
+
+   .hush-admin-login {
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    background:
+      radial-gradient(
+        circle at 15% 15%,
+        rgba(109, 74, 255, 0.13),
+        transparent 35%
+      ),
+      radial-gradient(
+        circle at 85% 85%,
+        rgba(109, 74, 255, 0.08),
+        transparent 35%
+      ),
+      #f7f7fc;
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    box-sizing: border-box;
+  }
+  
+  .hush-admin-login *,
+  .hush-admin-login *::before,
+  .hush-admin-login *::after {
+    box-sizing: border-box;
+  }
+  
+  .hush-admin-login-card {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 42px 38px;
+    background: #ffffff;
+    border: 1px solid #e9e7f2;
+    border-radius: 22px;
+    box-shadow: 0 20px 65px rgba(30, 22, 65, 0.07);
+    color: #211b35;
+  }
+  
+  .hush-admin-login-card h1 {
+    margin: 0 0 30px;
+    font-size: 38px;
+    font-weight: 850;
+    letter-spacing: -2px;
+    line-height: 1.2;
+    color: #211b35;
+  }
+  
+  .hush-admin-login-card h1 span {
+    color: #6d4aff;
+  }
+  
+  .hush-admin-login-card h2 {
+    margin: 0 0 10px;
+    font-size: 25px;
+    font-weight: 750;
+    letter-spacing: -0.7px;
+    line-height: 1.3;
+    color: #211b35;
+  }
+  
+  .hush-admin-login-card > p {
+    margin: 0 0 28px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #77718b;
+  }
+  
+  .hush-admin-login-card label {
+    display: block;
+    margin: 0 0 9px;
+    font-size: 13px;
+    font-weight: 650;
+    color: #373049;
+  }
+  
+  .hush-admin-login-card input {
+    display: block;
+    width: 100%;
+    height: 49px;
+    margin: 0 0 21px;
+    padding: 0 15px;
+    border: 1px solid #e3e0eb;
+    border-radius: 11px;
+    background: #faf9fd;
+    color: #211b35;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  
+  .hush-admin-login-card input::placeholder {
+    color: #a5a0b0;
+  }
+  
+  .hush-admin-login-card input:focus {
+    border-color: #6d4aff;
+    box-shadow: 0 0 0 4px rgba(109, 74, 255, 0.1);
+    background: #fff;
+  }
+  
+  .hush-admin-login-card button[type="submit"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 49px;
+    margin-top: 4px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 11px;
+    background: #6d4aff;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+  
+  .hush-admin-login-card button[type="submit"]:hover:not(:disabled) {
+    background: #5937e6;
+    transform: translateY(-1px);
+  }
+  
+  .hush-admin-login-card button[type="submit"]:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+  
+  .hush-admin-login-card > a {
+    display: block;
+    margin-top: 26px;
+    color: #77718b;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 550;
+    text-align: center;
+  }
+  
+  .hush-admin-login-card > a:hover {
+    color: #6d4aff;
+  }
+  
+  .hush-admin-login-card .hush-admin-error {
+    margin: 0 0 16px;
+    padding: 12px;
+    border-radius: 9px;
+    background: #fff0f1;
+    color: #c62842;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  
+  /* Mobile responsiveness */
+  
+  @media (max-width: 480px) {
+    .hush-admin-login {
+      padding: 18px;
+    }
+  
+    .hush-admin-login-card {
+      padding: 34px 25px;
+      border-radius: 18px;
+    }
+  
+    .hush-admin-login-card h1 {
+      font-size: 34px;
+    }
+  
+    .hush-admin-login-card h2 {
+      font-size: 23px;
+    }
+  }
+  
+/* ==========================================
+   HUSH ADMIN DASHBOARD
+========================================== */
+
+.hush-dashboard {
+  --admin-navy: #101426;
+  --admin-accent: #7559e8;
+  --admin-text: #17192b;
+  --admin-muted: #85899a;
+  --admin-border: #e9eaf1;
+
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: #f7f8fc;
+  color: var(--admin-text);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* SIDEBAR */
+
+.hush-dashboard-sidebar {
+  width: 260px;
+  min-width: 260px;
+  min-height: 100vh;
+  background: var(--admin-navy);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 34px 20px 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.hush-dashboard-brand {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -2px;
+  line-height: 1;
+  padding: 0 15px;
+}
+
+.hush-dashboard-brand > span {
+  color: #a58cff;
+}
+
+.hush-dashboard-brand small {
+  display: block;
+  margin-top: 13px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #8e93ad;
+}
+
+.hush-dashboard-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 65px;
+}
+
+.hush-dashboard-nav a {
+  display: flex;
+  align-items: center;
+  padding: 15px 17px;
+  border-radius: 11px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #aeb2c8;
+  transition: background 0.2s, color 0.2s;
+}
+
+.hush-dashboard-nav a:hover {
+  background: #222840;
+  color: white;
+}
+
+.hush-dashboard-nav a.active {
+  background: #7559e8;
+  color: white;
+}
+
+.hush-dashboard-sidebar-bottom {
+  margin-top: auto;
+  border-top: 1px solid #30354c;
+  padding: 25px 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.hush-dashboard-sidebar-bottom > span {
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+}
+
+.hush-dashboard-sidebar-bottom small {
+  font-size: 11px;
+  color: #aeb2c8;
+  overflow-wrap: anywhere;
+}
+
+.hush-dashboard-sidebar-bottom button {
+  width: 100%;
+  margin-top: 15px;
+  padding: 13px;
+  border: 1px solid #42475e;
+  background: #252b43;
+  color: white;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hush-dashboard-sidebar-bottom button:hover {
+  background: #363e60;
+}
+
+.hush-dashboard-sidebar-bottom button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* MAIN CONTENT */
+
+.hush-dashboard-main {
+  flex: 1;
+  min-width: 0;
+  padding: 48px 55px;
+  max-width: 1700px;
+  margin: 0 auto;
+}
+
+.hush-dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.hush-dashboard-eyebrow {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: var(--admin-accent);
+  margin-bottom: 13px;
+}
+
+.hush-dashboard-header h1 {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  margin: 0 0 10px;
+  line-height: 1.2;
+}
+
+.hush-dashboard-header p {
+  font-size: 13px;
+  color: var(--admin-muted);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.hush-dashboard-admin-badge {
+  display: inline-flex;
+  align-items: center;
+  background: #eeeaff;
+  color: #694bcf;
+  padding: 11px 17px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* STATISTICS */
+
+.hush-dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 36px;
+}
+
+.hush-dashboard-stat {
+  background: white;
+  padding: 27px;
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  box-shadow: 0 5px 20px rgba(22, 24, 55, 0.025);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 160px;
+}
+
+.hush-dashboard-stat > span {
+  color: #777c90;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hush-dashboard-stat strong {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin: 17px 0 12px;
+  line-height: 1;
+  color: #202238;
+}
+
+.hush-dashboard-stat small {
+  color: #a0a3b2;
+  font-size: 10px;
+}
+
+/* REPORTED POSTS */
+
+.hush-dashboard-reports {
+  background: white;
+  border: 1px solid var(--admin-border);
+  border-radius: 17px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(22, 24, 55, 0.025);
+}
+
+.hush-dashboard-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 28px 30px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.hush-dashboard-section-heading h2 {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  margin: 0 0 9px;
+}
+
+.hush-dashboard-section-heading p {
+  color: var(--admin-muted);
+  font-size: 12px;
+  margin: 0;
+}
+
+.hush-dashboard-section-heading > span {
+  background: #f2efff;
+  color: #7355db;
+  padding: 9px 13px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.hush-dashboard-empty {
+  min-height: 330px;
+  padding: 55px 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.hush-dashboard-empty-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 17px;
+  background: #f0ecff;
+  color: #7657e6;
+  font-size: 35px;
+  margin-bottom: 23px;
+}
+
+.hush-dashboard-empty h3 {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0 0 12px;
+  color: #24263c;
+}
+
+.hush-dashboard-empty p {
+  color: #9296a7;
+  font-size: 12px;
+  max-width: 370px;
+  line-height: 1.8;
+  margin: 0;
+}
+
+/* RESPONSIVE DESIGN */
+
+@media (max-width: 1050px) {
+  .hush-dashboard-main {
+    padding: 35px 28px;
+  }
+
+  .hush-dashboard-sidebar {
+    width: 220px;
+    min-width: 220px;
+  }
+}
+
+@media (max-width: 760px) {
+  .hush-dashboard {
+    flex-direction: column;
+  }
+
+  .hush-dashboard-sidebar {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    min-height: auto;
+    height: auto;
+    padding: 22px;
+  }
+
+  .hush-dashboard-brand {
+    padding: 0;
+  }
+
+  .hush-dashboard-nav {
+    margin-top: 25px;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .hush-dashboard-nav a {
+    padding: 12px;
+  }
+
+  .hush-dashboard-sidebar-bottom {
+    margin-top: 22px;
+  }
+
+  .hush-dashboard-main {
+    width: 100%;
+    padding: 30px 18px;
+  }
+
+  .hush-dashboard-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hush-dashboard-header h1 {
+    font-size: 29px;
+  }
+
+  .hush-dashboard-stats {
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+
+  .hush-dashboard-stat {
+    min-height: 135px;
+  }
+
+  .hush-dashboard-section-heading {
+    padding: 23px 19px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* ADMIN REPORTED POSTS */
+
+.hush-admin-post-list {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hush-admin-post {
+  background: #fff;
+  border: 1px solid #e9eaf1;
+  border-radius: 13px;
+  padding: 23px;
+}
+
+.hush-admin-post-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.hush-admin-post-top > div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.hush-admin-post-top strong {
+  font-size: 13px;
+  color: #25263d;
+}
+
+.hush-admin-post-top small {
+  font-size: 11px;
+  color: #9296a7;
+}
+
+.hush-admin-report-count {
+  background: #fff0f0;
+  color: #d34242;
+  border-radius: 7px;
+  padding: 9px 13px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.hush-admin-post-text {
+  margin: 20px 0;
+  color: #34364c;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.hush-admin-post-media {
+  margin-top: 16px;
+}
+
+.hush-admin-post-media video,
+.hush-admin-post-media img {
+  display: block;
+  max-width: 100%;
+  max-height: 350px;
+  border-radius: 10px;
+  background: #111426;
+  object-fit: contain;
+}
+
+.hush-admin-post-footer {
+  margin-top: 22px;
+  padding-top: 15px;
+  border-top: 1px solid #eff0f5;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: #9296a7;
+  font-size: 10px;
+}
+/* HUSH HORIZONTAL MEDIA GALLERIES â€” append to src/index.css */
+.hush-gallery-shell { width: 100%; min-width: 0; margin-top: 12px; }
+.media.hush-horizontal-gallery,
+.media.hush-composer-gallery {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  grid-template-columns: none !important;
+  gap: 10px !important;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 0 6px;
+  border-radius: 12px;
+}
+.media.hush-horizontal-gallery .hush-media-item,
+.media.hush-composer-gallery .thumb {
+  position: relative;
+  flex: 0 0 min(82%, 360px) !important;
+  width: min(82%, 360px) !important;
+  min-width: 0;
+  height: 280px !important;
+  aspect-ratio: auto !important;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #171727;
+  scroll-snap-align: start;
+}
+.media.hush-horizontal-gallery.hush-single-media .hush-media-item {
+  flex-basis: 100% !important;
+  width: 100% !important;
+}
+.media.hush-horizontal-gallery .hush-media-item img,
+.media.hush-horizontal-gallery .hush-media-item video,
+.media.hush-composer-gallery .thumb img,
+.media.hush-composer-gallery .thumb video {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  object-fit: cover !important;
+  border-radius: 0;
+}
+.hush-gallery-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 6px;
+  color: var(--muted, #888);
+  font-size: 11px;
+}
+.hush-gallery-controls > div { display: flex; gap: 7px; }
+.hush-gallery-controls button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line, #ddd);
+  border-radius: 50%;
+  background: var(--card, #fff);
+  color: var(--text, #222);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.media.hush-composer-gallery .thumb .remove {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  right: 8px;
+}
+@media (max-width: 600px) {
+  .media.hush-horizontal-gallery .hush-media-item,
+  .media.hush-composer-gallery .thumb {
+    flex-basis: 85% !important;
+    width: 85% !important;
+    height: 235px !important;
+  }
+  .media.hush-horizontal-gallery.hush-single-media .hush-media-item {
+    flex-basis: 100% !important;
+    width: 100% !important;
+  }
+}
+
+/* ADMIN DELETE BUTTON */
+
+.hush-admin-delete-btn {
+  background: #dc3545;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.hush-admin-delete-btn:hover {
+  background: #b72836;
+}
+
+.hush-admin-delete-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+

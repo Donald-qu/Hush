@@ -1,8 +1,8 @@
-// Import Firebase's core function.
+
 import { initializeApp } from "firebase/app";
 
-// Import Firestore.
-// Firestore is the Firebase database where Hush posts will be stored.
+import { getAuth } from "firebase/auth";
+
 import {
   getFirestore,
   collection,
@@ -18,16 +18,20 @@ const firebaseConfig = {
   storageBucket: "anonymous-x-295e2.firebasestorage.app",
   messagingSenderId: "476742473273",
   appId: "1:476742473273:web:431f93fddb996782a51fe8",
+  measurementId: "G-8SFKNF80NW"
 };
 
 // Initialize Firebase.
 const app = initializeApp(firebaseConfig);
 
-// Connect our app to Cloud Firestore.
+// Connect Firebase Authentication.
+const auth = getAuth(app);
+
+// Connect to Cloud Firestore.
 const db = getFirestore(app);
 
 // Temporary test function.
-// We will remove this after confirming Firestore works.
+// Remove this after confirming Firestore works.
 export async function testFirestore() {
   const testPost = {
     text: "Hush Firebase connection test",
@@ -36,8 +40,11 @@ export async function testFirestore() {
 
   const docRef = await addDoc(collection(db, "posts"), testPost);
 
-  console.log("Firestore test successful. Document ID:", docRef.id);
+  console.log(
+    "Firestore test successful. Document ID:",
+    docRef.id
+  );
 }
 
-// Export the database connection.
-export { db };
+// Export the database and authentication connections.
+export { db, auth };
